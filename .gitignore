@@ -1,1 +1,4 @@
-data/
+# only include test set of images, exclude all 'real' datasets
+!data/
+data/*
+!data/test/
