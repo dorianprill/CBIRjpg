@@ -2,3 +2,4 @@
 !data/
 data/*
 !data/test/
+__pycache__
