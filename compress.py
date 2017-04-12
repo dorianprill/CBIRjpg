@@ -72,7 +72,7 @@ def convertImagesInDirectory(inDir, outDir, compressor):
 class JPGFormat:
   def __init__(self, targetSize):
     self.targetSize = targetSize
-    self.qualityRange = range(10, 90)
+    self.qualityRange = range(10, 100)
     self.extension = ".jpg"
 
   def compress(self, inFileName):
@@ -81,7 +81,7 @@ class JPGFormat:
 class JP2Format:
   def __init__(self, targetSize):
     self.targetSize = targetSize
-    self.qualityRange = range(10, 90)
+    self.qualityRange = range(10, 100)
     self.extension = ".jp2"
 
   def compress(self, inFileName):
