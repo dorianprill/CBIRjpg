@@ -51,7 +51,8 @@ if __name__ == "__main__":
     
     queryKp, queryDes = get_sift_descriptors(sys.argv[1])
     queryType = sys.argv[1].split('/')[-2]
-    
+    print(queryType)
+
     bf = cv2.BFMatcher()
     goodMatches = []
     results = []
@@ -71,7 +72,7 @@ if __name__ == "__main__":
 
             # TODO: add to ... dataframe? panel?
 
-    correctImages = len(list(filter(lambda r: r[1] == queryType, results[:3])))
+    correctImages = len(list(filter(lambda r: r[1] == queryType , sorted(results)[:3])))
 
     print("total: " + str(imagesToRetrieve) + " found: " + str(correctImages))
 
