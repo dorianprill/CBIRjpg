@@ -53,7 +53,7 @@ if __name__ == "__main__":
     
     bf = cv2.BFMatcher()
     goodMatches = []
-
+    results = []
     for subdir, dirs, files in os.walk(rootdir):
         for file in files:
             # find the keypoints and compute descriptors
@@ -64,8 +64,10 @@ if __name__ == "__main__":
                     goodMatches.append(m)
 
             distances = list(map(lambda m: m.distance, goodMatches))
-            print(os.path.join(subdir, file))
-            print(np.average(distances))
+            results.append((np.average(distances), os.path.join(subdir, file)))
             # TODO: add to ... dataframe? panel?
+
+
+    print(sorted(results))
 
 #EOF
