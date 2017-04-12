@@ -9,6 +9,7 @@
 #
 
 import  os
+import  sys
 import  cv2
 import  numpy               as      np
 import  matplotlib.pyplot   as      plt
@@ -22,8 +23,8 @@ def get_sift_descriptors(imgfile, opt=None):
     of the image with all found keypoints highlighted
     and to scale w.r.t. size of descriptor
     """
-    img     = cv2.imread(imgfile)
-    gray    = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
+    img     = cv2.imread(imgfile, cv2.IMREAD_GRAYSCALE)
+    gray    = img
     sift    = cv2.xfeatures2d.SIFT_create()
     kp, des = sift.detectAndCompute(gray,None)
     if opt == 'show_keypoints':
@@ -45,13 +46,26 @@ if __name__ == "__main__":
         #'---> class2/
             #'---> img1.png ...
     # root directory of the datasets
-    rootdir = './data'
+    rootdir = './data/test/500/'
+    dataset = []
+    
+    queryKp, queryDes = get_sift_descriptors(sys.argv[1])
+    
+    bf = cv2.BFMatcher()
+    goodMatches = []
 
     for subdir, dirs, files in os.walk(rootdir):
         for file in files:
-            print(os.path.join(subdir, file))
             # find the keypoints and compute descriptors
             kp, des = get_sift_descriptors(os.path.join(subdir, file))
+            matches = bf.knnMatch(queryDes, des, k=2)
+            for m,n in matches:
+                if m.distance < 0.75*n.distance:
+                    goodMatches.append(m)
+
+            distances = list(map(lambda m: m.distance, goodMatches))
+            print(os.path.join(subdir, file))
+            print(np.average(distances))
             # TODO: add to ... dataframe? panel?
 
 #EOF
