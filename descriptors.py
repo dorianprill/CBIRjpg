@@ -50,10 +50,13 @@ if __name__ == "__main__":
     dataset = []
     
     queryKp, queryDes = get_sift_descriptors(sys.argv[1])
+    queryType = sys.argv[1].split('/')[-2]
     
     bf = cv2.BFMatcher()
     goodMatches = []
     results = []
+    imagesToRetrieve = 3
+
     for subdir, dirs, files in os.walk(rootdir):
         for file in files:
             # find the keypoints and compute descriptors
@@ -64,9 +67,13 @@ if __name__ == "__main__":
                     goodMatches.append(m)
 
             distances = list(map(lambda m: m.distance, goodMatches))
-            results.append((np.average(distances), os.path.join(subdir, file)))
+            results.append((np.average(distances), subdir.split('/')[-1]))
+
             # TODO: add to ... dataframe? panel?
 
+    correctImages = len(list(filter(lambda r: r[1] == queryType, results[:3])))
+
+    print("total: " + str(imagesToRetrieve) + " found: " + str(correctImages))
 
     print(sorted(results))
 
