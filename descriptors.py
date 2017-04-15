@@ -11,6 +11,7 @@
 import  os
 import  sys
 import  cv2
+import  pickle
 import  numpy               as      np
 import  matplotlib.pyplot   as      plt
 
@@ -193,20 +194,35 @@ if __name__ == "__main__":
 
     # root directory of the datasets
     rootdir = sys.argv[1]
+    descriptor = sys.argv[2]
 
     for subdir, dirs, files in os.walk(rootdir):
         print(subdir)
         for file in files:
-            print("  {}".format(file))
-            # TBD: compress images on the fly or before?
-            # find the keypoints and compute descriptors
-            kp, des = extract_SIFT(os.path.join(subdir, file))
-            kp, des = extract_SURF(os.path.join(subdir, file))
-            kp, des = extract_BRIEF(os.path.join(subdir, file))
-            des     = extract_HOG(os.path.join(subdir, file))
-            kp, des = extract_BRISK(os.path.join(subdir, file))
-            kp, des = extract_KAZE(os.path.join(subdir, file))
-            kp, des = extract_ORB(os.path.join(subdir, file))
-            # TODO: store them as ... dataframe? pickle object?
+            if file.endswith((".dng", ".jpg", "jp2", "jxr")):
+                imagefile = os.path.join(subdir, file)
+                print("  {}".format(file))
+                if descriptor == 'sift' or descriptor == "all" :
+                    kp, des = extract_SIFT(imagefile)
+                    pickle.dump(des, open(imagefile + '.sift', 'wb'))
+                if descriptor == "surf" or descriptor == "all":
+                    kp, des = extract_SURF(imagefile)
+                    pickle.dump(des, open(imagefile + '.surf', 'wb'))
+                if descriptor == 'brief' or descriptor == "all":
+                    kp, des = extract_BRIEF(imagefile)
+                    pickle.dump(des, open(imagefile + '.brief', 'wb'))
+                if descriptor == 'hog' or descriptor == "all": 
+                    des     = extract_HOG(imagefile)
+                    # BEWARE: the generated files can be huge (several gigabytes)
+                    # pickle.dump(des, open(imagefile + '.hog', 'wb'))
+                if descriptor == 'brisk' or descriptor == "all":
+                    kp, des = extract_BRISK(imagefile)
+                    pickle.dump(des, open(imagefile + '.brisk', 'wb'))
+                if descriptor == 'kaze' or descriptor == "all":
+                    kp, des = extract_KAZE(imagefile)
+                    pickle.dump(des, open(imagefile + '.kaze', 'wb'))
+                if descriptor == 'orb' or descriptor == "all":
+                    kp, des = extract_ORB(imagefile)
+                    pickle.dump(des, open(imagefile + '.orb', 'wb'))
 
 #EOF
