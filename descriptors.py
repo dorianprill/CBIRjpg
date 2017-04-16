@@ -28,7 +28,7 @@ __mser  = cv2.MSER_create()
 # SIFT: Lapl. of Gauss.  is approx. with the Diff. of Gauss.
 # SURF: Lapl. of Gauss.  is approx. with a box filter (faster).
 __sift  = cv2.xfeatures2d.SIFT_create()
-__surf  = cv2.xfeatures2d.SURF_create()
+__surf  = cv2.xfeatures2d.SURF_create(extended=True)
 # BRISK Binary Robust Invariant Scalable Keypoints
 __brisk = cv2.BRISK_create()
 # KAZE features and descriptors
@@ -60,8 +60,7 @@ def extract_SIFT(imgfile, opt=None):
     of the image with all found keypoints highlighted
     and to scale w.r.t. size of descriptor
     """
-    img     = cv2.imread(imgfile)
-    gray    = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
+    gray     = cv2.imread(imgfile, 0)
     kp, des = __sift.detectAndCompute(gray,None)
     if opt == 'show_keypoints':
         __show_keypoints(gray,kp,img)
@@ -199,9 +198,9 @@ if __name__ == "__main__":
     for subdir, dirs, files in os.walk(rootdir):
         print(subdir)
         for file in files:
-            if file.endswith((".dng", ".jpg", "jp2", "jxr")):
+            if file.endswith((".bmp", ".jpg", ".jp2", ".jxr")):
                 imagefile = os.path.join(subdir, file)
-                print("  {}".format(file))
+                print(imagefile)
                 if descriptor == 'sift' or descriptor == "all" :
                     kp, des = extract_SIFT(imagefile)
                     pickle.dump(des, open(imagefile + '.sift', 'wb'))
