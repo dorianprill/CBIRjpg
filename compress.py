@@ -3,6 +3,9 @@ import os, sys, uuid, argparse
 def encodeGM(inFile, outFile, quality):
   os.system("gm convert {} -quality {} {}".format(inFile, quality, outFile))
 
+def encodeJpeg2000(inFile, outFile, quality):
+  os.system("opj_compress -i {} -r {} -o {}".format(inFile, quality, outFile))
+
 def decodeGM(inFile, outFile):
   os.system("gm convert {} {}".format(inFile, outFile))
 
