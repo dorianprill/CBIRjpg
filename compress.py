@@ -61,21 +61,24 @@ def convertImagesInDirectory(inDir, outDir, compressor):
   dirList = os.listdir(inDir)
   for i in range(len(dirList)):
     originalFile = os.path.join(inDir, dirList[i])
-    uncompressedOriginal = str(uuid.uuid4()) + ".bmp"
-    decodeGM(originalFile, uncompressedOriginal)
-    compressedFile, quality, fileSize = compressor.compress(uncompressedOriginal)
-    compressedFileName = switchExtension(os.path.split(originalFile)[1], compressor.extension)
-    os.rename(compressedFile, os.path.join(outDir, compressedFileName))
-    os.remove(uncompressedOriginal)
-    print("{}/{} {} q = {} size = {}".format(i + 1, len(dirList), dirList[i], quality, fileSize))
-    if fileSize > compressor.targetSize:
-      print("could not meet target size!")
-      sys.exit(1)
+    if originalFile.endswith('.bmp'):
+      print(originalFile)
+      uncompressedOriginal = str(uuid.uuid4()) + ".bmp"
+      print(uncompressedOriginal)
+      decodeGM(originalFile, uncompressedOriginal)
+      compressedFile, quality, fileSize = compressor.compress(uncompressedOriginal)
+      compressedFileName = switchExtension(os.path.split(originalFile)[1], compressor.extension)
+      os.rename(compressedFile, os.path.join(outDir, compressedFileName))
+      os.remove(uncompressedOriginal)
+      print("{}/{} {} q = {} size = {}".format(i + 1, len(dirList), dirList[i], quality, fileSize))
+      if fileSize > compressor.targetSize:
+        print("could not meet target size!")
+        sys.exit(1)
 
 class JPGFormat:
   def __init__(self, targetSize):
     self.targetSize = targetSize
-    self.qualityRange = range(10, 100)
+    self.qualityRange = range(1, 150)
     self.extension = ".jpg"
 
   def compress(self, inFileName):
@@ -84,16 +87,16 @@ class JPGFormat:
 class JP2Format:
   def __init__(self, targetSize):
     self.targetSize = targetSize
-    self.qualityRange = range(10, 100)
+    self.qualityRange = range(300, 1, -1  )
     self.extension = ".jp2"
 
   def compress(self, inFileName):
-    return compressToSize(encodeGM, inFileName, self.extension, self.qualityRange, self.targetSize)
+    return compressToSize(encodeJpeg2000, inFileName, self.extension, self.qualityRange, self.targetSize)
 
 class JXRFormat:
   def __init__(self, targetSize):
     self.targetSize = targetSize
-    self.qualityRange = range(150, 20, -1)
+    self.qualityRange = range(150, 1, -1)
     self.extension = ".jxr"
 
   def compress(self, inFileName):
@@ -109,4 +112,13 @@ parser.add_argument("targetSize", type = int)
 args = parser.parse_args()
 
 compressor = formatChoices[args.fileFormat](args.targetSize)
-convertImagesInDirectory(args.inDirectory, args.outDirectory, compressor)
+
+for subdir, dirs, files in os.walk(args.inDirectory):
+    for directory in dirs:
+      outSubDir = os.path.join(args.outDirectory, directory)
+      inSubDir  = os.path.join(args.inDirectory, directory)
+      if not os.path.exists(outSubDir):
+        os.makedirs(outSubDir)
+      print('directory: ' + inSubDir)
+      print('subdir:' + outSubDir)
+      convertImagesInDirectory(inSubDir, outSubDir, compressor)
