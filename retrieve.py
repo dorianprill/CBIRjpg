@@ -19,12 +19,23 @@ if __name__ == "__main__":
     dataDir = sys.argv[2]
     descriptor = sys.argv[3]
     
-    if descriptor == 'sift' or descriptor == 'surf':
+    if descriptor == 'sift' or descriptor == 'surf' or descriptor == 'kaze':
         bf = cv2.BFMatcher()
+        FLANN_INDEX_KDTREE = 1 
+        index_params = dict(algorithm = FLANN_INDEX_KDTREE, trees = 5)
+
     else:
         bf = cv2.BFMatcher(normType=cv2.NORM_HAMMING)
-  
-    imagesToRetrieve = 3
+        FLANN_INDEX_LSH = 6
+        index_params= dict(algorithm = FLANN_INDEX_LSH,
+                   table_number = 6, # 12
+                   key_size = 12,     # 20
+                   multi_probe_level = 1) #2
+
+    search_params = dict(checks=50)
+    imagesToRetrieve = 5
+    flann = cv2.FlannBasedMatcher(index_params,search_params)
+
 
     for subdir, dirs, files in os.walk(queryDir):
         for file in files:
@@ -44,9 +55,9 @@ if __name__ == "__main__":
                             des = pickle.load(open(os.path.join(subdir2, file2), 'rb'))
                             matches = bf.knnMatch(queryDes, des, k=2)
                             for m,n in matches:
-                                if m.distance < 0.75*n.distance:
+                                if m.distance < 0.70*n.distance:
                                     goodMatches.append(m)
-
+    
                             distances = list(map(lambda m: m.distance, goodMatches))
                             result =  (np.average(distances), subdir2.split('/')[-1])
                             print('result: ' + str(result))

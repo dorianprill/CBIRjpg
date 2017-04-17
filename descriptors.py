@@ -213,7 +213,7 @@ if __name__ == "__main__":
                 if descriptor == 'hog' or descriptor == "all": 
                     des     = extract_HOG(imagefile)
                     # BEWARE: the generated files can be huge (several gigabytes)
-                    # pickle.dump(des, open(imagefile + '.hog', 'wb'))
+                    #pickle.dump(des, open(imagefile + '.hog', 'wb'))
                 if descriptor == 'brisk' or descriptor == "all":
                     kp, des = extract_BRISK(imagefile)
                     pickle.dump(des, open(imagefile + '.brisk', 'wb'))
