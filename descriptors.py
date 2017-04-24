@@ -37,11 +37,9 @@ __kaze  = cv2.KAZE_create()
 __brief = cv2.xfeatures2d.BriefDescriptorExtractor_create()
 # ORB detector & descriptors
 __orb   = cv2.ORB_create()
-
-
-
 # HoG descriptor extractor as CHoG is not available in openCV due to copyright
 __hog   = cv2.HOGDescriptor()
+
 
 def __show_keypoints(gray,kp,img):
     img = cv2.drawKeypoints(gray,kp,img,flags=cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
@@ -210,7 +208,7 @@ if __name__ == "__main__":
                 if descriptor == 'brief' or descriptor == "all":
                     kp, des = extract_BRIEF(imagefile)
                     pickle.dump(des, open(imagefile + '.brief', 'wb'))
-                if descriptor == 'hog' or descriptor == "all": 
+                if descriptor == 'hog' or descriptor == "all":
                     des     = extract_HOG(imagefile)
                     # BEWARE: the generated files can be huge (several gigabytes)
                     #pickle.dump(des, open(imagefile + '.hog', 'wb'))

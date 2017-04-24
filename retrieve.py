@@ -18,10 +18,10 @@ if __name__ == "__main__":
     queryDir = sys.argv[1]
     dataDir = sys.argv[2]
     descriptor = sys.argv[3]
-    
+
     if descriptor == 'sift' or descriptor == 'surf' or descriptor == 'kaze':
         bf = cv2.BFMatcher()
-        FLANN_INDEX_KDTREE = 1 
+        FLANN_INDEX_KDTREE = 1
         index_params = dict(algorithm = FLANN_INDEX_KDTREE, trees = 5)
 
     else:
@@ -57,7 +57,7 @@ if __name__ == "__main__":
                             for m,n in matches:
                                 if m.distance < 0.70*n.distance:
                                     goodMatches.append(m)
-    
+
                             distances = list(map(lambda m: m.distance, goodMatches))
                             result =  (np.average(distances), subdir2.split('/')[-1])
                             print('result: ' + str(result))
