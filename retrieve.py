@@ -5,6 +5,41 @@ import  glob
 import  pickle
 import  numpy as np
 
+def rocPoints(boolData):
+    totalPos = sum(1 for d in boolData if d == True)
+    totalNeg = sum(1 for d in boolData if d == False)
+    if totalPos < 1 or totalNeg < 1:
+        raise ValueError("must contain at least one positive and negative result")
+    rocPoints = []
+    for i in range(len(boolData) + 1):
+        dataPart = boolData[:i]
+        partPos = sum(1 for d in dataPart if d == True)
+        partNeg = sum(1 for d in dataPart if d == False)
+        falsePosRate = partNeg / float(totalNeg)
+        truePosRate = partPos / float(totalPos)
+        rocPoints.append((falsePosRate, truePosRate))
+    rocPoints = sorted(rocPoints)
+    # for all points at a given x, keep only that with the highest y
+    rocPoints = [rocPoints[i] for i in range(len(rocPoints))
+            if i == len(rocPoints) - 1 or rocPoints[i][0] < rocPoints[i + 1][0]]
+    return rocPoints
+
+def rocAreaBool(boolData):
+    points = rocPoints(boolData)
+    area = 0.0
+    for i in range(len(points) - 1):
+        p1, p2 = points[i], points[i + 1]
+        area += (p2[0] - p1[0]) * (p1[1] + p2[1]) / 2
+    return area
+
+def rocAreaFromResults(queryDescriptorFilename, results):
+    queryCategory = descriptorNameCategory(queryDescriptorFilename)[1]
+    boolData = []
+    for result in results:
+        resultCategory = descriptorNameCategory(result[1])[1]
+        boolData.append(resultCategory == queryCategory)
+    return rocAreaBool(boolData)
+
 def createMatcher(descriptor):
     if descriptor == 'sift' or descriptor == 'surf' or descriptor == 'kaze':
         bf = cv2.BFMatcher()
@@ -30,8 +65,8 @@ def descriptorNameCategory(descriptorFilename):
 
 def printResults(queryDescriptorFilename, results):
     queryName, queryCategory = descriptorNameCategory(queryDescriptorFilename)
-    print("query={} category={}".format(queryName, queryCategory))
-    results = sorted(results)
+    rocArea = rocAreaFromResults(queryDescriptorFilename, results)
+    print("query={} category={} rocArea={}".format(queryName, queryCategory, rocArea))
     for result in results:
         trainName, trainCategory = descriptorNameCategory(result[1])
         print("train={} category={} distance={}".format(trainName, trainCategory, result[0]))
@@ -78,5 +113,5 @@ if __name__ == "__main__":
             trainDesDist = doMatching(queryDes, trainDes, bf)
             results.append((trainDesDist, trainDesFile))
 
-        printResults(queryDesFile, results)
+        printResults(queryDesFile, sorted(results))
         print("")
