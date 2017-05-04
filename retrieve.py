@@ -29,7 +29,7 @@ def rocAreaBool(boolData):
     area = 0.0
     for i in range(len(points) - 1):
         p1, p2 = points[i], points[i + 1]
-        area += (p2[0] - p1[0]) * (p1[1] + p2[1]) / 2
+        area += (p2[0] - p1[0]) * p1[1]
     return area
 
 def rocAreaFromResults(queryDescriptorFilename, results):
@@ -108,7 +108,7 @@ if __name__ == "__main__":
     for queryDesFile, queryDes in queryDescriptors:       
         results = []
         
-        for trainDesFile, trainDes in trainDescriptors:
+        for trainDesFile, trainDes in [d for d in trainDescriptors if not np.array_equal(d[1], queryDes)]:
         
             trainDesDist = doMatching(queryDes, trainDes, bf)
             results.append((trainDesDist, trainDesFile))
