@@ -38,7 +38,21 @@ __brief = cv2.xfeatures2d.BriefDescriptorExtractor_create()
 # ORB detector & descriptors
 __orb   = cv2.ORB_create()
 # HoG descriptor extractor as CHoG is not available in openCV due to copyright
-__hog   = cv2.HOGDescriptor()
+winSize             = (64,64)
+blockSize           = (32, 32) # default is (16,16)
+blockStride         = (16, 16) # default is (8,8)
+cellSize            = (8,8)
+nbins               = 9
+derivAperture       = 1
+winSigma            = 4.
+histogramNormType   = 0
+L2HysThreshold      = 2.0000000000000001e-01
+gammaCorrection     = 0
+nlevels             = 4 # default is 64
+__hog   = cv2.HOGDescriptor(winSize,blockSize,blockStride,cellSize,
+                            nbins,derivAperture,winSigma,
+                            histogramNormType,L2HysThreshold,
+                            gammaCorrection,nlevels)
 
 
 def __show_keypoints(gray,kp,img):
@@ -63,7 +77,7 @@ def extract_SIFT(imgfile, opt=None):
     if opt == 'show_keypoints':
         __show_keypoints(gray,kp,img)
 
-    return kp,des
+    return des
 
 
 def extract_SURF(imgfile, opt=None):
@@ -82,7 +96,7 @@ def extract_SURF(imgfile, opt=None):
     if opt == 'show_keypoints':
         __show_keypoints(gray,kp,img)
 
-    return kp,des
+    return des
 
 
 def extract_BRIEF(imgfile, opt=None):
@@ -102,7 +116,7 @@ def extract_BRIEF(imgfile, opt=None):
     if opt == 'show_keypoints':
         __show_keypoints(gray,kp,img)
 
-    return kp,des
+    return des
 
 
 def extract_ORB(imgfile, opt=None):
@@ -122,7 +136,7 @@ def extract_ORB(imgfile, opt=None):
     if opt == 'show_keypoints':
         __show_keypoints(gray,kp,img)
 
-    return kp,des
+    return des
 
 
 def extract_HOG(imgfile):
@@ -154,7 +168,7 @@ def extract_BRISK(imgfile, opt=None):
     if opt == 'show_keypoints':
         __show_keypoints(gray,kp,img)
 
-    return kp,des
+    return des
 
 def extract_KAZE(imgfile, opt=None):
     """
@@ -173,7 +187,7 @@ def extract_KAZE(imgfile, opt=None):
     if opt == 'show_keypoints':
         __show_keypoints(gray,kp,img)
 
-    return kp,des
+    return des
 
 
 
@@ -208,6 +222,8 @@ if __name__ == "__main__":
         descriptors = sys.argv[2].split(sep=',')
         print(descriptors)
 
+    print("Selected descriptor methods: \n  {}".format(descriptors))
+
     for subdir, dirs, files in os.walk(rootdir):
         print(subdir)
         for file in files:
@@ -215,13 +231,7 @@ if __name__ == "__main__":
                 imagefile = os.path.join(subdir, file)
                 print(imagefile)
                 for method in descriptors:
-                    print(method)
-                    if method == "hog":
-                        des = dispatch[method](imagefile)
-                        # BEWARE: the generated files can be huge (several gigabytes)
-                        #pickle.dump(des, open(imagefile + '.' + method, 'wb'))
-                    else:
-                        kp, des = dispatch[method](imagefile)
-                        pickle.dump(des, open(imagefile + '.' + method, 'wb'))
+                    des = dispatch[method](imagefile)
+                    pickle.dump(des, open(imagefile + '.' + method, 'wb'))
 
 #EOF
