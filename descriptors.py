@@ -205,7 +205,8 @@ if __name__ == "__main__":
     if len(sys.argv) < 3:
         descriptors = methods
     else:
-        descriptors = sys.argv[2]
+        descriptors = sys.argv[2].split(sep=',')
+        print(descriptors)
 
     for subdir, dirs, files in os.walk(rootdir):
         print(subdir)
@@ -213,14 +214,14 @@ if __name__ == "__main__":
             if file.endswith((".bmp", ".jpg", ".jp2", ".jxr")):
                 imagefile = os.path.join(subdir, file)
                 print(imagefile)
-                for meth in methods:
-                    print(meth)
-                    if meth == "hog":
-                        des = dispatch[meth](imagefile)
+                for method in descriptors:
+                    print(method)
+                    if method == "hog":
+                        des = dispatch[method](imagefile)
                         # BEWARE: the generated files can be huge (several gigabytes)
-                        #pickle.dump(des, open(imagefile + '.' + meth, 'wb'))
+                        #pickle.dump(des, open(imagefile + '.' + method, 'wb'))
                     else:
-                        kp, des = dispatch[meth](imagefile)
-                        pickle.dump(des, open(imagefile + '.' + meth, 'wb'))
+                        kp, des = dispatch[method](imagefile)
+                        pickle.dump(des, open(imagefile + '.' + method, 'wb'))
 
 #EOF
