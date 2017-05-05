@@ -2,4 +2,8 @@
 !data/
 data/*
 !data/test/
+data/test/*
+!data/test/*.jpg
+!data/test/*.bmp
+!data/test/*.png
 __pycache__
