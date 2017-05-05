@@ -146,8 +146,10 @@ def extract_HOG(imgfile):
     Feature Detector:       None - HOG is a global descriptor
     Descriptor Extractor:   HOG
     """
+    winStride = (32,32)
+    padding = (32,32)
     gray = cv2.cvtColor(cv2.imread(imgfile),cv2.COLOR_BGR2GRAY)
-    des  = __hog.compute(gray)
+    des  = __hog.compute(gray, winStride, padding)
     return des
 
 
