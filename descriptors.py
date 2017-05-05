@@ -188,10 +188,24 @@ if __name__ == "__main__":
             #'---> img2.png
         #'---> class2/
             #'---> img1.png ...
+    methods = ['sift', 'surf', 'brief', 'orb', 'hog', 'brisk', 'kaze']
 
+    dispatch = {
+        "sift":     extract_SIFT,
+        "surf":     extract_SURF,
+        "brief":    extract_BRIEF,
+        "orb":      extract_ORB,
+        "hog":      extract_HOG,
+        "brisk":    extract_BRISK,
+        "kaze":     extract_KAZE
+    }
     # root directory of the datasets
     rootdir = sys.argv[1]
-    descriptor = sys.argv[2]
+    # if no descriptor name was given, default to all
+    if len(sys.argv) < 3:
+        descriptors = methods
+    else:
+        descriptors = sys.argv[2]
 
     for subdir, dirs, files in os.walk(rootdir):
         print(subdir)
@@ -199,27 +213,14 @@ if __name__ == "__main__":
             if file.endswith((".bmp", ".jpg", ".jp2", ".jxr")):
                 imagefile = os.path.join(subdir, file)
                 print(imagefile)
-                if descriptor == 'sift' or descriptor == "all" :
-                    kp, des = extract_SIFT(imagefile)
-                    pickle.dump(des, open(imagefile + '.sift', 'wb'))
-                if descriptor == "surf" or descriptor == "all":
-                    kp, des = extract_SURF(imagefile)
-                    pickle.dump(des, open(imagefile + '.surf', 'wb'))
-                if descriptor == 'brief' or descriptor == "all":
-                    kp, des = extract_BRIEF(imagefile)
-                    pickle.dump(des, open(imagefile + '.brief', 'wb'))
-                if descriptor == 'hog' or descriptor == "all":
-                    des     = extract_HOG(imagefile)
-                    # BEWARE: the generated files can be huge (several gigabytes)
-                    #pickle.dump(des, open(imagefile + '.hog', 'wb'))
-                if descriptor == 'brisk' or descriptor == "all":
-                    kp, des = extract_BRISK(imagefile)
-                    pickle.dump(des, open(imagefile + '.brisk', 'wb'))
-                if descriptor == 'kaze' or descriptor == "all":
-                    kp, des = extract_KAZE(imagefile)
-                    pickle.dump(des, open(imagefile + '.kaze', 'wb'))
-                if descriptor == 'orb' or descriptor == "all":
-                    kp, des = extract_ORB(imagefile)
-                    pickle.dump(des, open(imagefile + '.orb', 'wb'))
+                for meth in methods:
+                    print(meth)
+                    if meth == "hog":
+                        des = dispatch[meth](imagefile)
+                        # BEWARE: the generated files can be huge (several gigabytes)
+                        #pickle.dump(des, open(imagefile + '.' + meth, 'wb'))
+                    else:
+                        kp, des = dispatch[meth](imagefile)
+                        pickle.dump(des, open(imagefile + '.' + meth, 'wb'))
 
 #EOF
