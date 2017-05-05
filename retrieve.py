@@ -63,6 +63,9 @@ def descriptorNameCategory(descriptorFilename):
     dSplit = descriptorFilename.split("/")
     return (dSplit[-1], dSplit[-2])
 
+def fromSamePicture(descriptorFileA, descriptorFileB):
+    return descriptorFileA.split("/")[-1] == descriptorFileB.split("/")[-1]
+
 def printResults(queryDescriptorFilename, results):
     queryName, queryCategory = descriptorNameCategory(queryDescriptorFilename)
     rocArea = rocAreaFromResults(queryDescriptorFilename, results)
@@ -108,7 +111,7 @@ if __name__ == "__main__":
     for queryDesFile, queryDes in queryDescriptors:       
         results = []
         
-        for trainDesFile, trainDes in [d for d in trainDescriptors if not np.array_equal(d[1], queryDes)]:
+        for trainDesFile, trainDes in [d for d in trainDescriptors if not fromSamePicture(d[0], queryDesFile)]:
         
             trainDesDist = doMatching(queryDes, trainDes, bf)
             results.append((trainDesDist, trainDesFile))
