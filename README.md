@@ -6,14 +6,7 @@ To avoid artifacts from subsequent compression, an uncompressed dataset is used.
 
 
 # How it Works
-The setup of the experiment is as follows:  
-1. The images are compressed using jpeg standard algorithms listed above
-2. Descriptors are extracted from the images with several methods
-
-An image is then used to query the database and retrieval scores are computed
-for the returned set of images. This is done for the different compression
-methods and descriptors and properly cross-validated on the whole dataset
-
+You basically just have to run 'python doEverything.py 1 1 1'. Sit back and enjoy the show!
 
 # Requirements
 
