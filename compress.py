@@ -1,4 +1,8 @@
-import os, sys, uuid, argparse
+import os, sys, uuid, argparse, math
+
+def calculateTargetSize(inFile, compressionRatio):
+  originalSize = os.path.getsize(inFile)
+  return math.floor(originalSize / compressionRatio)
 
 def encodeGM(inFile, outFile, quality):
   os.system("gm convert {} -quality {} {}".format(inFile, quality, outFile))
@@ -27,7 +31,8 @@ def compressorFunction(encoder, inFile, filePrefix, fileEnding, qualityRange):
 
   return lambda qualityIdx : compress(encoder, inFile, filePrefix, fileEnding, qualityRange, qualityIdx)
 
-def compressToSize(encoder, inFile, fileEnding, qualityRange, targetSize):
+def compressToSize(encoder, inFile, fileEnding, qualityRange, compressionRatio):
+  targetSize = calculateTargetSize(inFile, compressionRatio)
   filePrefix = str(uuid.uuid4())
   lowerIdx, currentIdx, upperIdx = 0, 0, len(qualityRange) - 1
   compressAtQuality = compressorFunction(encoder, inFile, filePrefix, fileEnding, qualityRange)
@@ -71,36 +76,37 @@ def convertImagesInDirectory(inDir, outDir, compressor):
       os.rename(compressedFile, os.path.join(outDir, compressedFileName))
       os.remove(uncompressedOriginal)
       print("{}/{} {} q = {} size = {}".format(i + 1, len(dirList), dirList[i], quality, fileSize))
-      if fileSize > compressor.targetSize:
+      targetSize = calculateTargetSize(originalFile, compressor.compressionRatio)
+      if fileSize > targetSize:
         print("could not meet target size!")
         sys.exit(1)
 
 class JPGFormat:
-  def __init__(self, targetSize):
-    self.targetSize = targetSize
+  def __init__(self, compressionRatio):
+    self.compressionRatio = compressionRatio
     self.qualityRange = range(1, 150)
     self.extension = ".jpg"
 
   def compress(self, inFileName):
-    return compressToSize(encodeGM, inFileName, self.extension, self.qualityRange, self.targetSize)
+    return compressToSize(encodeGM, inFileName, self.extension, self.qualityRange, self.compressionRatio)
 
 class JP2Format:
-  def __init__(self, targetSize):
-    self.targetSize = targetSize
+  def __init__(self, compressionRatio):
+    self.compressionRatio = compressionRatio
     self.qualityRange = range(300, 1, -1  )
     self.extension = ".jp2"
 
   def compress(self, inFileName):
-    return compressToSize(encodeJpeg2000, inFileName, self.extension, self.qualityRange, self.targetSize)
+    return compressToSize(encodeJpeg2000, inFileName, self.extension, self.qualityRange, self.compressionRatio)
 
 class JXRFormat:
-  def __init__(self, targetSize):
-    self.targetSize = targetSize
+  def __init__(self, compressionRatio):
+    self.targetSize = compressionRatio
     self.qualityRange = range(150, 1, -1)
     self.extension = ".jxr"
 
   def compress(self, inFileName):
-    return compressToSize(encodeJxrLib, inFileName, self.extension, self.qualityRange, self.targetSize)
+    return compressToSize(encodeJxrLib, inFileName, self.extension, self.qualityRange, self.compressionRatio)
 
 formatChoices = {"jpg" : JPGFormat, "jp2" : JP2Format, "jxr" : JXRFormat}
 
@@ -108,10 +114,14 @@ parser = argparse.ArgumentParser()
 parser.add_argument("inDirectory")
 parser.add_argument("outDirectory")
 parser.add_argument("fileFormat", choices = formatChoices.keys())
-parser.add_argument("targetSize", type = int)
+parser.add_argument("compressionRatio", type = int)
 args = parser.parse_args()
 
-compressor = formatChoices[args.fileFormat](args.targetSize)
+compressor = formatChoices[args.fileFormat](args.compressionRatio)
+
+if not os.path.exists(args.outDirectory):
+  print("Warning: The output directory you specified does not exist. It will now be created.")
+  os.makedirs(args.outDirectory)
 
 for subdir, dirs, files in os.walk(args.inDirectory):
     for directory in dirs:
