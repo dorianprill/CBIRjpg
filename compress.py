@@ -101,7 +101,7 @@ class JP2Format:
 
 class JXRFormat:
   def __init__(self, compressionRatio):
-    self.targetSize = compressionRatio
+    self.compressionRatio = compressionRatio
     self.qualityRange = range(150, 1, -1)
     self.extension = ".jxr"
 
