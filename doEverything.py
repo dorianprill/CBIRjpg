@@ -43,5 +43,5 @@ for fileType in fileTypes:
 
         if args.doRetrieval == True:
             for descriptor in descriptors:
-                os.system('python3 ' + rootDir + '/retrieve.py ' \
+                subprocess.check_output('python3 ' + rootDir + '/retrieve.py ' \
                 + rawDataDir + ' ' + compressedDir + ' ' + descriptor)
