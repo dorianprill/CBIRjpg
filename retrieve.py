@@ -12,11 +12,11 @@ def rocPoints(boolData):
         raise ValueError("must contain at least one positive and negative result")
     rocPoints = []
     for i in range(len(boolData) + 1):
-        dataPart = boolData[:i]
-        partPos = sum(1 for d in dataPart if d == True)
-        partNeg = sum(1 for d in dataPart if d == False)
-        falsePosRate = partNeg / float(totalNeg)
-        truePosRate = partPos / float(totalPos)
+        dataPart        = boolData[:i]
+        partPos         = sum(1 for d in dataPart if d == True)
+        partNeg         = sum(1 for d in dataPart if d == False)
+        falsePosRate    = partNeg / float(totalNeg)
+        truePosRate     = partPos / float(totalPos)
         rocPoints.append((falsePosRate, truePosRate))
     rocPoints = sorted(rocPoints)
     # for all points at a given x, keep only that with the highest y
@@ -25,11 +25,11 @@ def rocPoints(boolData):
     return rocPoints
 
 def rocAreaBool(boolData):
-    points = rocPoints(boolData)
-    area = 0.0
+    points  = rocPoints(boolData)
+    area    = 0.0
     for i in range(len(points) - 1):
-        p1, p2 = points[i], points[i + 1]
-        area += (p2[0] - p1[0]) * p1[1]
+        p1, p2  = points[i], points[i + 1]
+        area    += (p2[0] - p1[0]) * p1[1]
     return area
 
 def rocAreaFromResults(queryDescriptorFilename, results):
@@ -56,7 +56,7 @@ def createMatcher(descriptor):
 
     search_params = dict(checks=50)
     flann = cv2.FlannBasedMatcher(index_params,search_params)
-    
+
     return bf
 
 def descriptorNameCategory(descriptorFilename):
@@ -100,21 +100,20 @@ if __name__ == "__main__":
         #'---> class2/
             #'---> img1.png ...
     # root directory of the datasets
-    queryDir = sys.argv[1]
-    trainDir = sys.argv[2]
-    descriptorType = sys.argv[3]
+    queryDir            = sys.argv[1]
+    trainDir            = sys.argv[2]
+    descriptorType      = sys.argv[3]
+    bf                  = createMatcher(descriptorType)
+    queryDescriptors    = getDescriptors(queryDir, descriptorType)
+    trainDescriptors    = getDescriptors(trainDir, descriptorType)
 
-    bf = createMatcher(descriptorType)
-    queryDescriptors = getDescriptors(queryDir, descriptorType)
-    trainDescriptors = getDescriptors(trainDir, descriptorType)
-
-    for queryDesFile, queryDes in queryDescriptors:       
+    for queryDesFile, queryDes in queryDescriptors:
         results = []
-        
+
         for trainDesFile, trainDes in [d for d in trainDescriptors if not fromSamePicture(d[0], queryDesFile)]:
-        
+
             trainDesDist = doMatching(queryDes, trainDes, bf)
             results.append((trainDesDist, trainDesFile))
 
         printResults(queryDesFile, sorted(results))
-        print("")
+        #print("")

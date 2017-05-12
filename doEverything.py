@@ -1,8 +1,8 @@
 import os, argparse
+import subprocess
 
-rootDir = os.path.dirname(os.path.realpath(__file__))
-
-rawDataDir = rootDir + '/data/raw_dataset'
+rootDir     = os.path.dirname(os.path.realpath(__file__))
+rawDataDir  = rootDir + '/data/raw_dataset'
 
 if  not os.path.exists(rawDataDir):
     print(rawDataDir + " does not exists. Extracting raw_dataset.tar.bz2")
@@ -16,13 +16,12 @@ descriptors = ['sift', 'surf', 'brief', 'orb', 'brisk', 'kaze']
 parser = argparse.ArgumentParser()
 parser.add_argument("doCompression", type = int, default=1)
 parser.add_argument("doDescriptors", type = int, default=1)
-parser.add_argument("doRetrieval", type = int, default=1)
+parser.add_argument("doRetrieval",   type = int, default=1)
 args = parser.parse_args()
 
-
+# compute descriptors for uncompressed images
 if args.doDescriptors == True:
-    for descriptor in descriptors:
-        os.system('python3 ' + rootDir + '/descriptors.py ' +  rawDataDir + ' ' + descriptor)
+    os.system('python3 ' + rootDir + '/descriptors.py ' +  rawDataDir + ' ' + ','.join(descriptors))
 
 for fileType in fileTypes:
     for compressionRatio in compressionRatios:
@@ -31,9 +30,13 @@ for fileType in fileTypes:
             os.system('python ' + rootDir + '/compress.py ' + rawDataDir + ' ' + compressedDir + ' ' + fileType + ' ' + str(compressionRatio))
 
         if args.doDescriptors == True:
-            for descriptor in descriptors:
-                os.system('python3 ' + rootDir + '/descriptors.py ' +  compressedDir + ' ' + descriptor)
+            os.system('python3 ' + rootDir + '/descriptors.py ' +  compressedDir + ' ' + ','.join(descriptors))
 
         if args.doRetrieval == True:
             for descriptor in descriptors:
-                os.system('python3 ' + rootDir + '/retrieve.py ' + rawDataDir + ' ' + compressedDir + ' ' + descriptor)
+                #os.system('python3 ' + rootDir + '/retrieve.py ' + rawDataDir + ' ' + compressedDir + ' ' + descriptor)
+                output = subprocess.check_output('python3 ' + rootDir + '/retrieve.py ' \
+                                        + rawDataDir + ' ' + compressedDir \
+                                        + ' ' + descriptor, shell=True).wait()
+                print(output)
+#EOF
