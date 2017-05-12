@@ -1,3 +1,4 @@
+# note: verified with python2.7
 import os, sys, uuid, argparse, math
 
 def calculateTargetSize(inFile, compressionRatio):

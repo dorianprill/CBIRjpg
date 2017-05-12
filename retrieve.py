@@ -56,7 +56,7 @@ def createMatcher(descriptor):
 
     search_params = dict(checks=50)
     flann = cv2.FlannBasedMatcher(index_params,search_params)
-    
+
     return bf
 
 def descriptorNameCategory(descriptorFilename):
@@ -100,19 +100,18 @@ if __name__ == "__main__":
         #'---> class2/
             #'---> img1.png ...
     # root directory of the datasets
-    queryDir = sys.argv[1]
-    trainDir = sys.argv[2]
-    descriptorType = sys.argv[3]
+    queryDir            = sys.argv[1]
+    trainDir            = sys.argv[2]
+    descriptorType      = sys.argv[3]
+    bf                  = createMatcher(descriptorType)
+    queryDescriptors    = getDescriptors(queryDir, descriptorType)
+    trainDescriptors    = getDescriptors(trainDir, descriptorType)
 
-    bf = createMatcher(descriptorType)
-    queryDescriptors = getDescriptors(queryDir, descriptorType)
-    trainDescriptors = getDescriptors(trainDir, descriptorType)
-
-    for queryDesFile, queryDes in queryDescriptors:       
+    for queryDesFile, queryDes in queryDescriptors:
         results = []
-        
+
         for trainDesFile, trainDes in [d for d in trainDescriptors if not fromSamePicture(d[0], queryDesFile)]:
-        
+
             trainDesDist = doMatching(queryDes, trainDes, bf)
             results.append((trainDesDist, trainDesFile))
 

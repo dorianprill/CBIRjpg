@@ -222,16 +222,14 @@ if __name__ == "__main__":
         descriptors = methods
     else:
         descriptors = sys.argv[2].split(sep=',')
-        print(descriptors)
 
     print("Selected descriptor methods: \n  {}".format(descriptors))
 
     for subdir, dirs, files in os.walk(rootdir):
         print(subdir)
         for file in files:
-            if file.endswith((".bmp", ".jpg", ".jp2", ".jxr")):
+            if file.endswith((".bmp", ".png", ".jpg", ".jp2", ".jxr")):
                 imagefile = os.path.join(subdir, file)
-                print(imagefile)
                 for method in descriptors:
                     des = dispatch[method](imagefile)
                     pickle.dump(des, open(imagefile + '.' + method, 'wb'))
