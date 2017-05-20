@@ -45,3 +45,6 @@ for fileType in fileTypes:
             for descriptor in descriptors:
                 os.system('python3 ' + rootDir + '/retrieve.py ' \
                 + rawDataDir + ' ' + compressedDir + ' ' + descriptor)
+
+                os.system('python3 ' + rootDir + '/retrieve.py ' \
+                + compressedDir + ' ' + compressedDir + ' ' + descriptor)
