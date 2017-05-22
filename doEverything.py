@@ -43,8 +43,11 @@ for fileType in fileTypes:
 
         if args.doRetrieval == True:
             for descriptor in descriptors:
-                subprocess.check_output('python3 ' + rootDir + '/retrieve.py ' \
-                + rawDataDir + ' ' + compressedDir + ' ' + descriptor)
+                res         = subprocess.check_output(['python3', rootDir + '/retrieve.py', rawDataDir, compressedDir, descriptor])
+                res         = res.decode('ascii').split(sep='|')
+                modeline    = res[1].split(sep=':')[1]
+                ratioline   = res[2].split(sep=':')[1]
+                descrline   = res[3].split(sep=':')[1]
+                print('mode: {}\tratio: {}\tdescriptor: {}'.format(modeline, ratioline, descrline))
 
-                os.system('python3 ' + rootDir + '/retrieve.py ' \
-                + compressedDir + ' ' + compressedDir + ' ' + descriptor)
+# TODO gather and tokenize result, then pass on to plotting script

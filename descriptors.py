@@ -223,7 +223,7 @@ if __name__ == "__main__":
     else:
         descriptors = sys.argv[2].split(sep=',')
 
-    print("Selected descriptor methods: \n  {}".format(descriptors))
+    #print("Selected descriptor methods: \n  {}".format(descriptors))
 
     for subdir, dirs, files in os.walk(rootdir):
         #print(subdir)

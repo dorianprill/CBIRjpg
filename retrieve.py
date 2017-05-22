@@ -117,6 +117,18 @@ if __name__ == "__main__":
             results.append((trainDesDist, trainDesFile))
 
         rocAreas.append(rocAreaFromResults(queryDesFile, sorted(results)))
-        printResults(queryDesFile, sorted(results))
+        # this should probably be activated by a verbose switch (& disabling plots)
+        #printResults(queryDesFile, sorted(results))
 
-    print("query: {} train: {} descriptor: {} avgRoc: {}".format(queryDir, trainDir, descriptorType, str(np.average(rocAreas))))
+    print("query:{}"
+            "|trainComprMode:{}"
+            "|trainComprRatio:{}"
+            "|descriptor:{}"
+            "|avgRoc:{}".format(queryDir,
+                                trainDir.split(sep='/')[-2],
+                                trainDir.split(sep='/')[-1],
+                                descriptorType, 
+                                str(np.average(rocAreas)))
+    )
+
+#EOF
