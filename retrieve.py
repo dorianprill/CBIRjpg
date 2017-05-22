@@ -107,6 +107,7 @@ if __name__ == "__main__":
     queryDescriptors    = getDescriptors(queryDir, descriptorType)
     trainDescriptors    = getDescriptors(trainDir, descriptorType)
 
+    rocAreas = []
     for queryDesFile, queryDes in queryDescriptors:
         results = []
 
@@ -115,5 +116,7 @@ if __name__ == "__main__":
             trainDesDist = doMatching(queryDes, trainDes, bf)
             results.append((trainDesDist, trainDesFile))
 
+        rocAreas.append(rocAreaFromResults(queryDesFile, sorted(results)))
         printResults(queryDesFile, sorted(results))
-        #print("")
+
+    print("query: {} train: {} descriptor: {} avgRoc: {}".format(queryDir, trainDir, descriptorType, str(np.average(rocAreas))))
