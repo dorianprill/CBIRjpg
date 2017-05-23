@@ -68,15 +68,16 @@ def convertImagesInDirectory(inDir, outDir, compressor):
   for i in range(len(dirList)):
     originalFile = os.path.join(inDir, dirList[i])
     if originalFile.endswith('.bmp'):
-      print(originalFile)
+      #print(originalFile)
       uncompressedOriginal = str(uuid.uuid4()) + ".bmp"
-      print(uncompressedOriginal)
+      #print(uncompressedOriginal)
       decodeGM(originalFile, uncompressedOriginal)
       compressedFile, quality, fileSize = compressor.compress(uncompressedOriginal)
       compressedFileName = switchExtension(os.path.split(originalFile)[1], compressor.extension)
       os.rename(compressedFile, os.path.join(outDir, compressedFileName))
       os.remove(uncompressedOriginal)
-      print("{}/{} {} q = {} size = {}".format(i + 1, len(dirList), dirList[i], quality, fileSize))
+      # we should maybe just put this into a logfile/csv
+      #print("{}/{} {} q = {} size = {}".format(i + 1, len(dirList), dirList[i], quality, fileSize))
       targetSize = calculateTargetSize(originalFile, compressor.compressionRatio)
       if fileSize > targetSize:
         print("could not meet target size!")
@@ -130,6 +131,6 @@ for subdir, dirs, files in os.walk(args.inDirectory):
       inSubDir  = os.path.join(args.inDirectory, directory)
       if not os.path.exists(outSubDir):
         os.makedirs(outSubDir)
-      print('directory: ' + inSubDir)
-      print('subdir:' + outSubDir)
+      #print('directory: ' + inSubDir)
+      #print('subdir:' + outSubDir)
       convertImagesInDirectory(inSubDir, outSubDir, compressor)

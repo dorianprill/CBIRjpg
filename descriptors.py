@@ -223,10 +223,10 @@ if __name__ == "__main__":
     else:
         descriptors = sys.argv[2].split(sep=',')
 
-    print("Selected descriptor methods: \n  {}".format(descriptors))
+    #print("Selected descriptor methods: \n  {}".format(descriptors))
 
     for subdir, dirs, files in os.walk(rootdir):
-        print(subdir)
+        #print(subdir)
         for file in files:
             if file.endswith((".bmp", ".png", ".jpg", ".jp2", ".jxr")):
                 imagefile = os.path.join(subdir, file)

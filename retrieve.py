@@ -12,11 +12,11 @@ def rocPoints(boolData):
         raise ValueError("must contain at least one positive and negative result")
     rocPoints = []
     for i in range(len(boolData) + 1):
-        dataPart = boolData[:i]
-        partPos = sum(1 for d in dataPart if d == True)
-        partNeg = sum(1 for d in dataPart if d == False)
-        falsePosRate = partNeg / float(totalNeg)
-        truePosRate = partPos / float(totalPos)
+        dataPart        = boolData[:i]
+        partPos         = sum(1 for d in dataPart if d == True)
+        partNeg         = sum(1 for d in dataPart if d == False)
+        falsePosRate    = partNeg / float(totalNeg)
+        truePosRate     = partPos / float(totalPos)
         rocPoints.append((falsePosRate, truePosRate))
     rocPoints = sorted(rocPoints)
     # for all points at a given x, keep only that with the highest y
@@ -25,11 +25,11 @@ def rocPoints(boolData):
     return rocPoints
 
 def rocAreaBool(boolData):
-    points = rocPoints(boolData)
-    area = 0.0
+    points  = rocPoints(boolData)
+    area    = 0.0
     for i in range(len(points) - 1):
-        p1, p2 = points[i], points[i + 1]
-        area += (p2[0] - p1[0]) * p1[1]
+        p1, p2  = points[i], points[i + 1]
+        area    += (p2[0] - p1[0]) * p1[1]
     return area
 
 def rocAreaFromResults(queryDescriptorFilename, results):
@@ -117,5 +117,18 @@ if __name__ == "__main__":
             results.append((trainDesDist, trainDesFile))
 
         rocAreas.append(rocAreaFromResults(queryDesFile, sorted(results)))
-        printResults(queryDesFile, sorted(results))
-    print("query: {} train: {} descriptor: {} avgRoc: {}".format(queryDir, trainDir, descriptorType, str(np.average(rocAreas))))
+        # this should probably be activated by a verbose switch (& disabling plots)
+        #printResults(queryDesFile, sorted(results))
+
+    print("query:{}"
+            "|trainComprMode:{}"
+            "|trainComprRatio:{}"
+            "|descriptor:{}"
+            "|avgRoc:{}".format(queryDir,
+                                trainDir.split(sep='/')[-2],
+                                trainDir.split(sep='/')[-1],
+                                descriptorType, 
+                                str(np.average(rocAreas)))
+    )
+
+#EOF

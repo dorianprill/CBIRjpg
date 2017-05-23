@@ -1,5 +1,7 @@
 # only include test set of images, exclude all 'real' datasets
 !data/
+results/
+results/*
 data/*
 !data/test/
 data/test/*
