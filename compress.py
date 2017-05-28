@@ -1,116 +1,79 @@
-# note: verified with python2.7
-import os, sys, uuid, argparse, math
+#!/usr/bin/python3
+
+import os, subprocess, argparse
+
+class Encoder:
+    def __init__(self, inFile, encFile, decFile):
+        self.inFile = inFile
+        self.encFile = encFile
+        self.decFile = decFile
+
+    def encode(self, quality):
+        if os.path.exists(self.encFile):
+            os.remove(self.encFile)
+        parameters = (self.inFile, self.encFile, self.qualityRange[quality])
+        subprocess.call(self.encCmdline.format(*parameters), shell = True,
+                stdout = subprocess.DEVNULL, stderr = subprocess.DEVNULL)
+        return os.path.getsize(self.encFile)
+    
+    def decode(self):
+        if os.path.exists(self.decFile):
+            os.remove(self.decFile)
+        parameters = (self.encFile, self.decFile)
+        subprocess.call(self.decCmdline.format(*parameters), shell = True,
+                stdout = subprocess.DEVNULL, stderr = subprocess.DEVNULL)
+
+
+class JPGEncoder(Encoder):
+    fileEnding = ".jpg"
+    qualityRange = range(0, 101)
+    encCmdline = "gm convert {0} -quality {2} {1}"
+    decCmdline = "gm convert {0} {1}"
+
+class JP2Encoder(Encoder):
+    fileEnding = ".jp2"
+    qualityRange = range(150, -1, -1)
+    encCmdline = "opj_compress -i {0} -o {1} -r {2}"
+    decCmdline = "opj_decompress -i {0} -o {1}"
+
+class JXREncoder(Encoder):
+    fileEnding = ".jxr"
+    qualityRange = range(150, 6, -1)
+    encCmdline = "JxrEncApp -i {0} -o {1} -q {2}"
+    decCmdline = "JxrDecApp -i {0} -o {1}"
+
 
 def calculateTargetSize(inFile, compressionRatio):
   originalSize = os.path.getsize(inFile)
-  return math.floor(originalSize / compressionRatio)
+  targetSize = originalSize // compressionRatio
+  return (originalSize, targetSize)
 
-def encodeGM(inFile, outFile, quality):
-  os.system("gm convert {} -quality {} {}".format(inFile, quality, outFile))
 
-def encodeJpeg2000(inFile, outFile, quality):
-  os.system("opj_compress -i {} -r {} -o {}".format(inFile, quality, outFile))
-
-def decodeGM(inFile, outFile):
-  os.system("gm convert {} {}".format(inFile, outFile))
-
-def encodeJxrLib(inFile, outFile, quality):
-  os.system("JxrEncApp -i {} -o {} -q {}".format(inFile, outFile, quality))
-
-def preprocessImage(fileName):
-  originalUncompressed = str(uuid.uuid4()) + ".bmp"
-  decodeGM(fileName, originalUncompressed)
-  return originalUncompressed
-
-def compressorFunction(encoder, inFile, filePrefix, fileEnding, qualityRange):
-  def compress(encoder, inFile, filePrefix, fileEnding, qualityRange, qualityIdx):
-    quality = qualityRange[qualityIdx]
-    outFile = "{}_{}{}".format(filePrefix, str(quality), fileEnding)
-    encoder(inFile, outFile, quality)
-    outFileSize = os.path.getsize(outFile)
-    return (outFile, outFileSize)
-
-  return lambda qualityIdx : compress(encoder, inFile, filePrefix, fileEnding, qualityRange, qualityIdx)
-
-def compressToSize(encoder, inFile, fileEnding, qualityRange, compressionRatio):
-  targetSize = calculateTargetSize(inFile, compressionRatio)
-  filePrefix = str(uuid.uuid4())
-  lowerIdx, currentIdx, upperIdx = 0, 0, len(qualityRange) - 1
-  compressAtQuality = compressorFunction(encoder, inFile, filePrefix, fileEnding, qualityRange)
-
-  while lowerIdx <= upperIdx:
-    currentIdx = (lowerIdx + upperIdx) / 2
-    outFile, outFileSize = compressAtQuality(currentIdx)
-    os.remove(outFile)
+def compressToSize(encoder, targetSize):
+    lowerIdx, currentIdx, upperIdx = 0, 0, len(encoder.qualityRange) - 1
+    while lowerIdx <= upperIdx:
+        currentIdx = (lowerIdx + upperIdx) // 2
+        outFileSize = encoder.encode(currentIdx)
+        if outFileSize <= targetSize:
+            lowerIdx = currentIdx + 1
+        else:
+            upperIdx = currentIdx - 1
+    
+    outFileSize = encoder.encode(currentIdx)
+    
     if outFileSize <= targetSize:
-      lowerIdx = currentIdx + 1
+        return (currentIdx, outFileSize)
+    elif currentIdx > 0:
+        currentIdx -= 1
     else:
-      upperIdx = currentIdx - 1
+        currentIdx = 0
+    
+    outFileSize = encoder.encode(currentIdx)
+    return (currentIdx, outFileSize)
 
-  outFile, outFileSize = compressAtQuality(currentIdx)
-  if outFileSize <= targetSize:
-    return (outFile, qualityRange[currentIdx], outFileSize)
-  elif currentIdx > 0:
-    currentIdx -= 1
-  else:
-    currentIdx = 0
 
-  os.remove(outFile)
-  outFile, outFileSize = compressAtQuality(currentIdx)
-  return (outFile, qualityRange[currentIdx], outFileSize)
 
-def switchExtension(fileName, newExtension):
-  baseName, extension = os.path.splitext(fileName)
-  return baseName + newExtension
-
-def convertImagesInDirectory(inDir, outDir, compressor):
-  dirList = os.listdir(inDir)
-  for i in range(len(dirList)):
-    originalFile = os.path.join(inDir, dirList[i])
-    if originalFile.endswith('.bmp'):
-      #print(originalFile)
-      uncompressedOriginal = str(uuid.uuid4()) + ".bmp"
-      #print(uncompressedOriginal)
-      decodeGM(originalFile, uncompressedOriginal)
-      compressedFile, quality, fileSize = compressor.compress(uncompressedOriginal)
-      compressedFileName = switchExtension(os.path.split(originalFile)[1], compressor.extension)
-      os.rename(compressedFile, os.path.join(outDir, compressedFileName))
-      os.remove(uncompressedOriginal)
-      # we should maybe just put this into a logfile/csv
-      #print("{}/{} {} q = {} size = {}".format(i + 1, len(dirList), dirList[i], quality, fileSize))
-      targetSize = calculateTargetSize(originalFile, compressor.compressionRatio)
-      if fileSize > targetSize:
-        print("could not meet target size!")
-        sys.exit(1)
-
-class JPGFormat:
-  def __init__(self, compressionRatio):
-    self.compressionRatio = compressionRatio
-    self.qualityRange = range(1, 150)
-    self.extension = ".jpg"
-
-  def compress(self, inFileName):
-    return compressToSize(encodeGM, inFileName, self.extension, self.qualityRange, self.compressionRatio)
-
-class JP2Format:
-  def __init__(self, compressionRatio):
-    self.compressionRatio = compressionRatio
-    self.qualityRange = range(300, 1, -1  )
-    self.extension = ".jp2"
-
-  def compress(self, inFileName):
-    return compressToSize(encodeJpeg2000, inFileName, self.extension, self.qualityRange, self.compressionRatio)
-
-class JXRFormat:
-  def __init__(self, compressionRatio):
-    self.compressionRatio = compressionRatio
-    self.qualityRange = range(150, 1, -1)
-    self.extension = ".jxr"
-
-  def compress(self, inFileName):
-    return compressToSize(encodeJxrLib, inFileName, self.extension, self.qualityRange, self.compressionRatio)
-
-formatChoices = {"jpg" : JPGFormat, "jp2" : JP2Format, "jxr" : JXRFormat}
+formatChoices = {"jpg" : JPGEncoder, "jp2" : JP2Encoder, "jxr" : JXREncoder}
 
 parser = argparse.ArgumentParser()
 parser.add_argument("inDirectory")
@@ -119,18 +82,29 @@ parser.add_argument("fileFormat", choices = formatChoices.keys())
 parser.add_argument("compressionRatio", type = int)
 args = parser.parse_args()
 
-compressor = formatChoices[args.fileFormat](args.compressionRatio)
+chosenEncoder = formatChoices[args.fileFormat]
 
 if not os.path.exists(args.outDirectory):
-  print("Warning: The output directory you specified does not exist. It will now be created.")
-  os.makedirs(args.outDirectory)
+    print("Warning: The output directory you specified does not exist. It will now be created.")
+    os.makedirs(args.outDirectory)
 
-for subdir, dirs, files in os.walk(args.inDirectory):
-    for directory in dirs:
-      outSubDir = os.path.join(args.outDirectory, directory)
-      inSubDir  = os.path.join(args.inDirectory, directory)
-      if not os.path.exists(outSubDir):
-        os.makedirs(outSubDir)
-      #print('directory: ' + inSubDir)
-      #print('subdir:' + outSubDir)
-      convertImagesInDirectory(inSubDir, outSubDir, compressor)
+for subdir, dirs, files in sorted(os.walk(args.inDirectory)):
+    for pictureFileName in [f for f in sorted(files) if f.endswith(".bmp")]:
+        pictureFile = os.path.join(subdir, pictureFileName)
+        outDir = os.path.join(args.outDirectory, os.path.relpath(subdir, args.inDirectory))
+        if not os.path.exists(outDir):
+            os.makedirs(outDir)
+        encPictureFileName = os.path.splitext(pictureFileName)[0] + chosenEncoder.fileEnding
+        encPictureFile = os.path.join(outDir, encPictureFileName)
+        decPictureFile = encPictureFile + ".bmp"
+        originalSize, targetSize = calculateTargetSize(pictureFile, args.compressionRatio)
+        encoder = chosenEncoder(pictureFile, encPictureFile, decPictureFile)
+        encQuality, encPictureSize = compressToSize(encoder, targetSize)
+        encRatio = originalSize / encPictureSize
+        encoder.decode()
+        print("{} quality = {} size = {} ratio = {:5f}".format(pictureFileName,
+                                                            encoder.qualityRange[encQuality],
+                                                            encPictureSize,
+                                                            encRatio))
+        if encPictureSize > targetSize:
+            raise Exception("could not meet target size!")
