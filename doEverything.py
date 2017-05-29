@@ -1,4 +1,4 @@
-#!/usr/bin/python3.6
+#!/usr/bin/python3
 
 import os, argparse
 import subprocess
@@ -6,14 +6,27 @@ import pandas as pd
 import numpy  as np
 import matplotlib
 import matplotlib.pyplot as plt
+import pickle
 matplotlib.style.use('ggplot')
 
 rootDir    = os.path.dirname(os.path.realpath(__file__))
-rawDataDir = rootDir + '/data/raw_dataset'
+rawDataDir = os.path.join(rootDir, 'data/raw_dataset')
+resultsDir = os.path.join(rootDir, 'results')
+resultsFile = os.path.join(resultsDir, 'results.pkl')
+
+results = []
+
+resultParameters = ["descriptor", "fileType", "compressionRatio"]
 
 if  not os.path.exists(rawDataDir):
-    print(rawDataDir + " does not exists. Extracting raw_dataset.tar.bz2")
+    print(rawDataDir + " does not exist. Extracting raw_dataset.tar.bz2")
     os.system('tar xvjf ' + rootDir + '/data/raw_dataset.tar.bz2 ' + ' -C ' + rootDir + '/data/');
+
+if not os.path.exists(resultsDir):
+    os.mkdir(resultsDir)
+
+if os.path.exists(resultsFile):
+    results = pickle.load(open(resultsFile, 'rb'))
 
 parser = argparse.ArgumentParser()
 parser.add_argument("doCompression", type = int, default=1)
@@ -24,57 +37,95 @@ parser.add_argument("quickTest",     type = str, default=None)
 args = parser.parse_args()
 
 if args.quickTest == 'quick':
-    compressionRatios = range(2,100,40)
-    fileTypes         = ['jpg', 'jp2'] #jp2 is super slow and jxr fails
-    descriptors       = ['orb', 'brisk']
-else :
+    compressionRatios = ['2', '5', '10', '20' , '50', '100']
+    fileTypes         = ['jxr', 'jpg']
+    descriptors       = ['orb']
+else:
     compressionRatios = range(2,100,5)
     fileTypes         = ['jpg', 'jp2', 'jxr']
     descriptors       = ['sift', 'surf', 'brief', 'orb', 'brisk', 'kaze'] # ,'hog']
 
 
 if args.doDescriptors == True:
-    os.system('python3 ' + rootDir + '/descriptors.py ' +  rawDataDir + ' ' + ','.join(descriptors))
+    print("computing descriptors for uncompressed pictures...")
+    cmdline = os.path.join(rootDir, 'descriptors.py') + ' ' + rawDataDir + ' ' + ','.join(descriptors)
+    print(cmdline)
+    print()
+    subprocess.call(cmdline, shell = True)
 
 for fileType in fileTypes:
-
-    print('file type: {}'.format(fileType))
-    # create dataframe for each compression method to plots
-    rowidx = 0
-    df = pd.DataFrame(np.float,index=range(0,len(compressionRatios)), columns=['ratio']+descriptors)
-
     for compressionRatio in compressionRatios:
+        print('format={}, ratio={}'.format(fileType, compressionRatio))
 
-        print('computing for ratio {}...'.format(compressionRatio))
 
         compressedDir = rootDir + '/data/compressed/' + fileType + '/' + str(compressionRatio)
         if args.doCompression == True:
-            os.system('python2.7 ' + rootDir + '/compress.py ' \
-                        + rawDataDir + ' ' + compressedDir + ' ' \
-                        + fileType + ' ' + str(compressionRatio))
+            print('compressing pictures...')
+            cmdline = os.path.join(rootDir, 'compress.py') \
+                         + ' ' + rawDataDir + ' ' + compressedDir + ' ' \
+                         + fileType + ' ' + str(compressionRatio)
+            print(cmdline)
+            print()
+            subprocess.call(cmdline, shell = True)
+
 
         if args.doDescriptors == True:
-            os.system('python3.6 ' + rootDir + '/descriptors.py ' \
-                        + compressedDir + ' ' + ','.join(descriptors))
+            print('computing descriptors...')
+            cmdline = os.path.join(rootDir, 'descriptors.py') \
+                        + ' ' + compressedDir + ' ' + ','.join(descriptors)
+            print(cmdline)
+            print()
+            subprocess.call(cmdline, shell = True)
+
 
         if args.doRetrieval == True:
+            print('doing retrieval...')
             for descriptor in descriptors:
-                res = subprocess.check_output(['python3', rootDir + '/retrieve.py',
-                                                rawDataDir, compressedDir, descriptor])
+                cmdline = os.path.join(rootDir, 'retrieve.py') \
+                        + ' ' + rawDataDir + ' ' + compressedDir + ' ' + descriptor
+                print(cmdline)
+                print()
+                res = subprocess.check_output(cmdline, shell = True)
                 res = res.decode('ascii').split(sep='|')
-                df.loc[rowidx,'ratio']    = float(res[2].split(sep=':')[1])
-                df.loc[rowidx,descriptor] = float(res[4].split(sep=':')[1][:-2]) # avgRoc  :-2 cuts off '\n'
+                avgROC = float(res[4].split(sep=':')[1].strip())
+                print("avgROC = {}".format(avgROC))
+                newResult = {'fileType' : fileType, 'descriptor' : descriptor,
+                                'compressionRatio' : compressionRatio,
+                                'avgROCArea' : avgROC}
+                
+                # remove previous results at same parameters
+                results = [r for r in results if [r[p] for p in resultParameters]
+                        != [newResult[p] for p in resultParameters]]
+                
+                results.append(newResult)
+                # save to disk after every new result
+                pickle.dump(results, open(resultsFile, 'wb'))
 
-        # advance index for next compression ratio
-        rowidx = rowidx+1
 
     if args.makePlots == True:
-        # plot dataframe with name of compression mode
+        print('plotting results...')
+        plotResults = [r for r in results if r["fileType"] == fileType
+                and r["compressionRatio"] in compressionRatios
+                and r["descriptor"] in descriptors]
+        
+        
+        df = pd.DataFrame(np.float,index=range(0,len(compressionRatios)), columns=['ratio']+descriptors)
+        for i in range(len(plotResults)):
+            r = plotResults[i]
+            df.loc[i, "ratio"] = r["compressionRatio"]
+            df.loc[i, r["descriptor"]] = r["avgROCArea"]
+        
+        print(df)
         ax = df.plot(x='ratio', y=descriptors, style='o-')
         plt.ylabel('Average ROC Area')
         plt.xlabel('Compression Ratio')
         plt.title('Retrieval Performance for '+fileType)
+        plt.legend(loc='upper left')
         fig = ax.get_figure()
-        fig.savefig('./results/'+'AvgAreaROC'+'_'+fileType+'_'+'-'.join(descriptors)+'.pdf')
+        pdfFileName = 'AvgAreaROC_{}_{}.pdf'.format(fileType, '-'.join(descriptors))
+        pdfFile = os.path.join(resultsDir, pdfFileName)
+        fig.savefig(pdfFile)
+        # avoid remnants of previous plot when drawing multiple plots
+        plt.gcf().clear()
 
 #EOF
