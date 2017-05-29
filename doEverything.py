@@ -38,9 +38,9 @@ parser.add_argument("quickTest",     type = str, default=None)
 args = parser.parse_args()
 
 if args.quickTest == 'quick':
-    compressionRatios = ['2', '5', '10', '20' , '50', '100']
-    fileTypes         = ['jxr', 'jpg']
-    descriptors       = ['orb']
+    compressionRatios = ['100', '200']
+    fileTypes         = ['jpg']
+    descriptors       = ['orb', 'sift']
 else:
     compressionRatios = range(2,100,5)
     fileTypes         = ['jpg', 'jp2', 'jxr']
@@ -111,9 +111,9 @@ for fileType in fileTypes:
         
         
         df = pd.DataFrame(np.float,index=range(0,len(compressionRatios)), columns=['ratio']+descriptors)
-        for i in range(len(plotResults)):
-            r = plotResults[i]
-            df.loc[i, "ratio"] = r["compressionRatio"]
+        for r in plotResults:
+            i = compressionRatios.index(int(r["compressionRatio"]))
+            df.loc[i, "ratio"] = compressionRatios[i]
             df.loc[i, r["descriptor"]] = r["avgROCArea"]
         
         print(df)
