@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 import  cv2
 import  sys
 import  os
@@ -82,7 +84,7 @@ def loadDescriptor(descriptorFile):
     return pickle.load(open(descriptorFile, 'rb'))
 
 def doMatching(queryDescriptor, trainDescriptor, matcher):
-    minRatio = 0.9
+    minRatio = 1.0
     matches = bf.knnMatch(queryDescriptor, trainDescriptor, k = 2)
     goodMatches = [m for m, n in matches if m.distance < minRatio * n.distance]
     if len(goodMatches) == 0:
@@ -117,8 +119,7 @@ if __name__ == "__main__":
             results.append((trainDesDist, trainDesFile))
 
         rocAreas.append(rocAreaFromResults(queryDesFile, sorted(results)))
-        # this should probably be activated by a verbose switch (& disabling plots)
-        #printResults(queryDesFile, sorted(results))
+        printResults(queryDesFile, sorted(results))
 
     print("query:{}"
             "|trainComprMode:{}"
