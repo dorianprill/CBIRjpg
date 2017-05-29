@@ -1,11 +1,10 @@
-#!/usr/bin/python
-# tested with python3.6
+#!/usr/bin/python3
 
 # SIFT/SURF only works in opencv_contrib as it is a patented algorithm and thus
 # has been moved out of the base install of the opencv package.
 # easiest way is to install with pip:
 #
-# $ pip3.6 install opencv-contrib-python
+# $ pip3 install opencv-contrib-python
 #
 
 import  os
@@ -228,7 +227,7 @@ if __name__ == "__main__":
     for subdir, dirs, files in os.walk(rootdir):
         #print(subdir)
         for file in files:
-            if file.endswith((".bmp", ".png", ".jpg", ".jp2", ".jxr")):
+            if file.endswith(".bmp"):
                 imagefile = os.path.join(subdir, file)
                 for method in descriptors:
                     des = dispatch[method](imagefile)
