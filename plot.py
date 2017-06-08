@@ -45,7 +45,6 @@ for d in descriptors:
     line = plt.plot(compressionRatios, yval, label = d, marker = "o", markersize = 8)
     plt.setp(line, linewidth = 2)
 
-plt.gca().set_xticks(compressionRatios)
 
 diffYval = max(totalYval) - min(totalYval)
 
@@ -53,6 +52,10 @@ plt.gca().grid(linewidth = 1.5)
 plt.gca().set_ylim([min(totalYval) - 0.1 * diffYval, max(totalYval) + 0.1 * diffYval])
 leg = plt.legend(loc = "upper left", fancybox = True)
 leg.get_frame().set_alpha(0.5)
+plt.gca().set_xscale("log")
+plt.gca().set_xticks(compressionRatios)
+plt.gca().get_xaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
+plt.gca().get_xaxis().set_minor_locator(matplotlib.ticker.NullLocator())
 
 plt.ylabel('Average ROC Area')
 plt.xlabel('Compression Ratio')
