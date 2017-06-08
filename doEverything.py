@@ -2,13 +2,7 @@
 
 import os, argparse
 import subprocess
-import pandas as pd
-import numpy  as np
-import matplotlib
-matplotlib.use('Agg')
-import matplotlib.pyplot as plt
 import pickle
-matplotlib.style.use('ggplot')
 
 rootDir    = os.path.dirname(os.path.realpath(__file__))
 rawDataDir = os.path.join(rootDir, 'data/raw_dataset')
@@ -38,11 +32,11 @@ parser.add_argument("quickTest",     type = str, default=None)
 args = parser.parse_args()
 
 if args.quickTest == 'quick':
-    compressionRatios = ['100', '200']
-    fileTypes         = ['jpg']
-    descriptors       = ['orb', 'sift']
+    compressionRatios = [50, 100, 200]
+    fileTypes         = ['jpg', 'jxr']
+    descriptors       = ['orb']
 else:
-    compressionRatios = range(2,100,5)
+    compressionRatios = [2, 5, 10, 20, 50, 100, 200] 
     fileTypes         = ['jpg', 'jp2', 'jxr']
     descriptors       = ['sift', 'surf', 'brief', 'orb', 'brisk', 'kaze'] # ,'hog']
 
@@ -105,28 +99,11 @@ for fileType in fileTypes:
 
     if args.makePlots == True:
         print('plotting results...')
-        plotResults = [r for r in results if r["fileType"] == fileType
-                and r["compressionRatio"] in compressionRatios
-                and r["descriptor"] in descriptors]
-        
-        
-        df = pd.DataFrame(np.float,index=range(0,len(compressionRatios)), columns=['ratio']+descriptors)
-        for r in plotResults:
-            i = compressionRatios.index(int(r["compressionRatio"]))
-            df.loc[i, "ratio"] = compressionRatios[i]
-            df.loc[i, r["descriptor"]] = r["avgROCArea"]
-        
-        print(df)
-        ax = df.plot(x='ratio', y=descriptors, style='o-')
-        plt.ylabel('Average ROC Area')
-        plt.xlabel('Compression Ratio')
-        plt.title('Retrieval Performance for '+fileType)
-        plt.legend(loc='upper left')
-        fig = ax.get_figure()
-        pdfFileName = 'AvgAreaROC_{}_{}.pdf'.format(fileType, '-'.join(descriptors))
-        pdfFile = os.path.join(resultsDir, pdfFileName)
-        fig.savefig(pdfFile)
-        # avoid remnants of previous plot when drawing multiple plots
-        plt.gcf().clear()
+        cmdline = os.path.join(rootDir, 'plot.py') + ' ' \
+                + resultsFile + ' ' + fileType + ' ' \
+                + os.path.join(resultsDir, fileType + '.pdf')
+        print(cmdline)
+        print()
+        subprocess.call(cmdline, shell = True)
 
 #EOF
