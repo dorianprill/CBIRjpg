@@ -41,7 +41,7 @@ for plot in plots:
         pictureDir = rawDataDir if ratio == 1 else compressedDir
         
         if args.doCompression == True:
-            if [r for r in results if r["compression"] == plot["compression"] and r["ratio"] == ratio]:
+            if ratio == 1 or [r for r in results if r["compression"] == plot["compression"] and r["ratio"] == ratio]:
                 print("skipping compression")
             else:
                 print('compressing pictures...')
