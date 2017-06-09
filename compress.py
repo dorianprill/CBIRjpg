@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 
 import os, subprocess, argparse
+import numpy as np
 
 class Encoder:
     def __init__(self, inFile, encFile, decFile):
@@ -32,13 +33,15 @@ class JPGEncoder(Encoder):
 
 class JP2Encoder(Encoder):
     fileEnding = ".jp2"
-    qualityRange = range(150, -1, -1)
+    qualityRange = range(5000, 0, -1)
     encCmdline = "opj_compress -i {0} -o {1} -r {2}"
     decCmdline = "opj_decompress -i {0} -o {1}"
 
 class JXREncoder(Encoder):
     fileEnding = ".jxr"
-    qualityRange = range(150, 6, -1)
+    # use quantization (integer) quality levels
+    # this means worse results, but more available compression levels
+    qualityRange = range(150, 1, -1)
     encCmdline = "JxrEncApp -i {0} -o {1} -q {2}"
     decCmdline = "JxrDecApp -i {0} -o {1}"
 
