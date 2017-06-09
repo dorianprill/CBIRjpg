@@ -84,7 +84,7 @@ def loadDescriptor(descriptorFile):
     return pickle.load(open(descriptorFile, 'rb'))
 
 def doMatching(queryDescriptor, trainDescriptor, matcher):
-    minRatio = 0.9
+    minRatio = 1.0
     if queryDescriptor == None or len(queryDescriptor) == 0 or trainDescriptor == None or len(trainDescriptor) == 0:
         print("warning: no descriptors available")
         return 0.0
