@@ -85,7 +85,7 @@ def loadDescriptor(descriptorFile):
 
 def doMatching(queryDescriptor, trainDescriptor, matcher):
     minRatio = 1.0
-    if queryDescriptor == None or len(queryDescriptor) == 0 or trainDescriptor == None or len(trainDescriptor) == 0:
+    if queryDescriptor is None or len(queryDescriptor) == 0 or trainDescriptor is None or len(trainDescriptor) == 0:
         print("warning: no descriptors available")
         return 0.0
     matches = bf.knnMatch(queryDescriptor, trainDescriptor, k = 2)
