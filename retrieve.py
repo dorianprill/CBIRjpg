@@ -84,11 +84,15 @@ def loadDescriptor(descriptorFile):
     return pickle.load(open(descriptorFile, 'rb'))
 
 def doMatching(queryDescriptor, trainDescriptor, matcher):
-    minRatio = 1.0
+    minRatio = 0.9
+    if queryDescriptor == None or len(queryDescriptor) == 0 or trainDescriptor == None or len(trainDescriptor) == 0:
+        print("warning: no descriptors available")
+        return 0.0
     matches = bf.knnMatch(queryDescriptor, trainDescriptor, k = 2)
     goodMatches = [m for m, n in matches if m.distance < minRatio * n.distance]
     if len(goodMatches) == 0:
-        raise ValueError("no matches survived ratio test")
+        print("warning: no matches survived ratio test")
+        return 0.0
     return np.average([m.distance for m in goodMatches])
 
 
