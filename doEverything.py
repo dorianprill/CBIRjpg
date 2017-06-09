@@ -12,8 +12,6 @@ presetsDir = os.path.join(rootDir, 'presets')
 
 results = []
 
-resultParameters = ["compression", "ratio", "descriptor", "scenario"]
-
 if  not os.path.exists(rawDataDir):
     print(rawDataDir + " does not exist. Extracting raw_dataset.tar.bz2")
     os.system('tar xvjf ' + rootDir + '/data/raw_dataset.tar.bz2 ' + ' -C ' + rootDir + '/data/');
@@ -35,8 +33,6 @@ args = parser.parse_args()
 presetFile = os.path.join(presetsDir, args.preset + ".py")
 exec(open(presetFile).read())
 
-computedRawDescriptors = False
-
 for plot in plots:
     for ratio in plot["ratios"]:
         print('compression={}, ratio={}, scenario = {}'.format(plot["compression"], ratio, plot["scenario"]))
@@ -45,7 +41,7 @@ for plot in plots:
         pictureDir = rawDataDir if ratio == 1 else compressedDir
         
         if args.doCompression == True:
-            if ratio == 1:
+            if [r for r in results if r["compression"] == plot["compression"] and r["ratio"] == ratio]:
                 print("skipping compression")
             else:
                 print('compressing pictures...')
@@ -58,7 +54,7 @@ for plot in plots:
 
 
         if args.doDescriptors == True:
-            if ratio == 1 and computedRawDescriptors:
+            if [r for r in results if r["compression"] == plot["compression"] and r["ratio"] == ratio]:
                 print("skipping descriptor computation")
             else:
                 print('computing descriptors...')
@@ -72,7 +68,11 @@ for plot in plots:
         if args.doRetrieval == True:
             print('doing retrieval...')
             for descriptor in plot["descriptors"]:
-                trainingDir =  rawDataDir if (plot["scenario"] == "tcqu" and ratio != 1) else pictureDir
+                if [    r for r in results if r["compression"] == plot["compression"] and r["ratio"] == ratio
+                        and r["descriptor"] == descriptor and r["scenario"] == plot["scenario"]]:
+                    print("skipping for descriptor {}".format(descriptor))
+                    continue
+                trainingDir = rawDataDir if plot["scenario"] == "tcqu" else pictureDir
                 cmdline = os.path.join(rootDir, 'retrieve.py') \
                         + ' ' + pictureDir + ' ' + trainingDir + ' ' + descriptor
                 print(cmdline)
@@ -81,15 +81,12 @@ for plot in plots:
                 res = res.decode('ascii').split(sep='|')
                 avgROCArea = float(res[4].split(sep=':')[1].strip())
                 print("avgROCArea = {}".format(avgROCArea))
+                
                 newResult = {"compression" : plot["compression"],
                              "ratio" : ratio,
                              "descriptor" : descriptor,
                              "scenario" : plot["scenario"],
                              "avgROCArea" : avgROCArea}
-                
-                # remove previous results at same parameters
-                results = [r for r in results if [r[p] for p in resultParameters]
-                        != [newResult[p] for p in resultParameters]]
                 
                 results.append(newResult)
                 # save to disk after every new result
