@@ -48,10 +48,11 @@ for d in descriptors:
     plt.setp(line, linewidth = 2)
 
 
+diffXval = max(compressionRatios) - min(compressionRatios)
 diffYval = max(totalYval) - min(totalYval)
 
 plt.gca().grid(linewidth = 1.5)
-plt.gca().set_xlim([0.9 * min(compressionRatios), 1.1 * max(compressionRatios)])
+plt.gca().set_xlim([min(compressionRatios) * 0.9, max(compressionRatios) * 1.1])
 plt.gca().set_ylim([min(totalYval) - 0.1 * diffYval, max(totalYval) + 0.1 * diffYval])
 leg = plt.legend(loc = "upper left", fancybox = True)
 leg.get_frame().set_alpha(0.5)
