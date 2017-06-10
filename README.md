@@ -26,6 +26,28 @@ After you have installed the required software you will also need the following 
 
 Extract all datasets to analyze to a subfolder named `data` so that your direcotry structure resembles this: `cbir/data/dataset1/class1/lotsoffiles.jpg`.
 
+# Results
+
+<table>
+ <tr>
+  <td> <img src="https://github.com/dorianprill/CBIRjpg/blob/master/results/png/jpg_tuqc.png"> </td>
+  <td> <img src="https://github.com/dorianprill/CBIRjpg/blob/master/results/png/jpg_tcqc.png"> </td>
+ </tr>
+</table>
+
+<table>
+ <tr>
+  <td> <img src="https://github.com/dorianprill/CBIRjpg/blob/master/results/png/jp2_tuqc.png"> </td>
+  <td> <img src="https://github.com/dorianprill/CBIRjpg/blob/master/results/png/jp2_tcqc.png"> </td>
+ </tr>
+</table>
+
+<table>
+ <tr>
+  <td> <img src="https://github.com/dorianprill/CBIRjpg/blob/master/results/png/jxr_tuqc.png"> </td>
+  <td> <img src="https://github.com/dorianprill/CBIRjpg/blob/master/results/png/jxr_tcqc.png"> </td>
+ </tr>
+</table>
 
 # About the authors
 
