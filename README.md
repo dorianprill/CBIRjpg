@@ -28,11 +28,26 @@ Extract all datasets to analyze to a subfolder named `data` so that your direcot
 
 # Results
 
-![](https://github.com/dorianprill/CBIRjpg/blob/master/results/png/jpg_tcqc.png)  |  ![](https://github.com/dorianprill/CBIRjpg/blob/master/results/png/jpg_tuqc.png)
-:-------------------------:|:-------------------------:
-![](https://github.com/dorianprill/CBIRjpg/blob/master/results/png/jp2_tcqc.png)  |  ![](https://github.com/dorianprill/CBIRjpg/blob/master/results/png/jp2_tuqc.png)
-:-------------------------:|:-------------------------:
-![](https://github.com/dorianprill/CBIRjpg/blob/master/results/png/jxr_tcqc.png)  |  ![](https://github.com/dorianprill/CBIRjpg/blob/master/results/png/jxr_tuqc.png)
+<table>
+ <tr>
+  <td> <img src="https://github.com/dorianprill/CBIRjpg/blob/master/results/png/jpg_tuqc.png"> </td>
+  <td> <img src="https://github.com/dorianprill/CBIRjpg/blob/master/results/png/jpg_tcqc.png"> </td>
+ </tr>
+</table>
+
+<table>
+ <tr>
+  <td> <img src="https://github.com/dorianprill/CBIRjpg/blob/master/results/png/jp2_tuqc.png"> </td>
+  <td> <img src="https://github.com/dorianprill/CBIRjpg/blob/master/results/png/jp2_tcqc.png"> </td>
+ </tr>
+</table>
+
+<table>
+ <tr>
+  <td> <img src="https://github.com/dorianprill/CBIRjpg/blob/master/results/png/jxr_tuqc.png"> </td>
+  <td> <img src="https://github.com/dorianprill/CBIRjpg/blob/master/results/png/jxr_tcqc.png"> </td>
+ </tr>
+</table>
 
 # About the authors
 
