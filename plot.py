@@ -36,6 +36,7 @@ for c in compressionRatios:
 compressionRatios = completeRatios
 results = [r for r in results if r["ratio"] in compressionRatios]
 
+xval = range(len(compressionRatios))
 totalYval = []
 
 for d in descriptors:
@@ -44,21 +45,19 @@ for d in descriptors:
     for r in descriptorResults:
         yval[compressionRatios.index(r["ratio"])] = r["avgROCArea"]
     totalYval += yval
-    line = plt.plot(compressionRatios, yval, label = d, marker = "o", markersize = 8)
+    line = plt.plot(xval, yval, label = d, marker = "o", markersize = 8)
     plt.setp(line, linewidth = 2)
 
-
-diffXval = max(compressionRatios) - min(compressionRatios)
 diffYval = max(totalYval) - min(totalYval)
 
 plt.gca().grid(linewidth = 1.5)
-plt.gca().set_xlim([min(compressionRatios) * 0.9, max(compressionRatios) * 1.1])
+plt.gca().set_xlim([-0.1, len(xval) - 0.9])
 plt.gca().set_ylim([min(totalYval) - 0.1 * diffYval, max(totalYval) + 0.1 * diffYval])
 leg = plt.legend(loc = "upper left", fancybox = True)
 leg.get_frame().set_alpha(0.5)
-plt.gca().set_xscale("log")
-plt.gca().set_xticks(compressionRatios)
-plt.gca().get_xaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
+plt.gca().set_xticks(xval)
+xtickFormatter = matplotlib.ticker.FuncFormatter(lambda x, pos: str(compressionRatios[pos]))
+plt.gca().get_xaxis().set_major_formatter(xtickFormatter)
 plt.gca().get_xaxis().set_minor_locator(matplotlib.ticker.NullLocator())
 
 plt.ylabel("Average ROC area")

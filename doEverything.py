@@ -72,7 +72,7 @@ for plot in plots:
                         and r["descriptor"] == descriptor and r["scenario"] == plot["scenario"]]:
                     print("skipping for descriptor {}".format(descriptor))
                     continue
-                trainingDir = rawDataDir if plot["scenario"] == "tcqu" else pictureDir
+                trainingDir = rawDataDir if plot["scenario"] == "tuqc" else pictureDir
                 cmdline = os.path.join(rootDir, 'retrieve.py') \
                         + ' ' + pictureDir + ' ' + trainingDir + ' ' + descriptor
                 print(cmdline)
