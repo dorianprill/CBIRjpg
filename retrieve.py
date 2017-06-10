@@ -42,25 +42,6 @@ def rocAreaFromResults(queryDescriptorFilename, results):
         boolData.append(resultCategory == queryCategory)
     return rocAreaBool(boolData)
 
-def createMatcher(descriptor):
-    if descriptor == 'sift' or descriptor == 'surf' or descriptor == 'kaze':
-        bf = cv2.BFMatcher()
-        FLANN_INDEX_KDTREE = 1
-        index_params = dict(algorithm = FLANN_INDEX_KDTREE, trees = 5)
-
-    else:
-        bf = cv2.BFMatcher(normType=cv2.NORM_HAMMING)
-        FLANN_INDEX_LSH = 6
-        index_params= dict(algorithm = FLANN_INDEX_LSH,
-                   table_number = 6, # 12
-                   key_size = 12,     # 20
-                   multi_probe_level = 1) #2
-
-    search_params = dict(checks=50)
-    flann = cv2.FlannBasedMatcher(index_params,search_params)
-
-    return bf
-
 def descriptorNameCategory(descriptorFilename):
     dSplit = descriptorFilename.split("/")
     return (dSplit[-1], dSplit[-2])
@@ -78,22 +59,20 @@ def printResults(queryDescriptorFilename, results):
 
 def getDescriptors(directory, descriptorType):
     descriptorFilenames = glob.glob(os.path.join(directory, "*/*." + descriptorType))
+    if not descriptorFilenames:
+        raise Exception("no descriptor files")
     return sorted((name, loadDescriptor(name)) for name in descriptorFilenames)
 
 def loadDescriptor(descriptorFile):
     return pickle.load(open(descriptorFile, 'rb'))
 
-def doMatching(queryDescriptor, trainDescriptor, matcher):
-    minRatio = 1.0
+def doMatching(queryDescriptor, trainDescriptor, descriptorType):
+    matcher = cv2.BFMatcher()
     if queryDescriptor is None or len(queryDescriptor) == 0 or trainDescriptor is None or len(trainDescriptor) == 0:
-        print("warning: no descriptors available")
+        print("warning: no descriptor available")
         return 0.0
-    matches = bf.knnMatch(queryDescriptor, trainDescriptor, k = 2)
-    goodMatches = [m for m, n in matches if m.distance < minRatio * n.distance]
-    if len(goodMatches) == 0:
-        print("warning: no matches survived ratio test")
-        return 0.0
-    return np.average([m.distance for m in goodMatches])
+    matches = matcher.match(queryDescriptor, trainDescriptor)
+    return np.average([m.distance for m in matches])
 
 
 if __name__ == "__main__":
@@ -109,7 +88,6 @@ if __name__ == "__main__":
     queryDir            = sys.argv[1]
     trainDir            = sys.argv[2]
     descriptorType      = sys.argv[3]
-    bf                  = createMatcher(descriptorType)
     queryDescriptors    = getDescriptors(queryDir, descriptorType)
     trainDescriptors    = getDescriptors(trainDir, descriptorType)
 
@@ -119,7 +97,7 @@ if __name__ == "__main__":
 
         for trainDesFile, trainDes in [d for d in trainDescriptors if not fromSamePicture(d[0], queryDesFile)]:
 
-            trainDesDist = doMatching(queryDes, trainDes, bf)
+            trainDesDist = doMatching(queryDes, trainDes, descriptorType)
             results.append((trainDesDist, trainDesFile))
 
         rocAreas.append(rocAreaFromResults(queryDesFile, sorted(results)))
