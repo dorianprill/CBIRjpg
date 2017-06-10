@@ -7,6 +7,19 @@ import  glob
 import  pickle
 import  numpy as np
 
+def createMatcher(descriptorType):
+    if descriptorType in ["sift", "surf", "kaze"]:
+        return cv2.FlannBasedMatcher({"algorithm" : 1, "trees" : 1}, {"checks" : 2})
+    if descriptorType in ["brief", "brisk"]:
+        return cv2.FlannBasedMatcher(dict(algorithm = 6,
+                   table_number = 1, # 12
+                   key_size = 20,     # 20
+                   multi_probe_level = 1), {"checks" : 0})
+    if descriptorType in ["orb"]:
+        return cv2.BFMatcher(cv2.NORM_HAMMING)
+    if descriptorType in ["kaze"]:
+        return cv2.BFMatcher(cv2.NORM_L2)
+
 def rocPoints(boolData):
     totalPos = sum(1 for d in boolData if d == True)
     totalNeg = sum(1 for d in boolData if d == False)
@@ -66,11 +79,11 @@ def getDescriptors(directory, descriptorType):
 def loadDescriptor(descriptorFile):
     return pickle.load(open(descriptorFile, 'rb'))
 
-def doMatching(queryDescriptor, trainDescriptor, descriptorType):
-    matcher = cv2.BFMatcher()
+def doMatching(queryDescriptor, trainDescriptor, matcher):
     if queryDescriptor is None or len(queryDescriptor) == 0 or trainDescriptor is None or len(trainDescriptor) == 0:
         print("warning: no descriptor available")
         return 0.0
+    #print("matching...")
     matches = matcher.match(queryDescriptor, trainDescriptor)
     return np.average([m.distance for m in matches])
 
@@ -90,6 +103,7 @@ if __name__ == "__main__":
     descriptorType      = sys.argv[3]
     queryDescriptors    = getDescriptors(queryDir, descriptorType)
     trainDescriptors    = getDescriptors(trainDir, descriptorType)
+    matcher = createMatcher(descriptorType)
 
     rocAreas = []
     for queryDesFile, queryDes in queryDescriptors:
@@ -97,7 +111,7 @@ if __name__ == "__main__":
 
         for trainDesFile, trainDes in [d for d in trainDescriptors if not fromSamePicture(d[0], queryDesFile)]:
 
-            trainDesDist = doMatching(queryDes, trainDes, descriptorType)
+            trainDesDist = doMatching(queryDes, trainDes, matcher)
             results.append((trainDesDist, trainDesFile))
 
         rocAreas.append(rocAreaFromResults(queryDesFile, sorted(results)))
