@@ -10,11 +10,16 @@ import  numpy as np
 def createMatcher(descriptorType):
     if descriptorType in ["sift", "surf", "kaze"]:
         return cv2.FlannBasedMatcher({"algorithm" : 1, "trees" : 1}, {"checks" : 2})
-    if descriptorType in ["brief", "brisk"]:
+    if descriptorType in ["brief"]:
         return cv2.FlannBasedMatcher(dict(algorithm = 6,
-                   table_number = 1, # 12
-                   key_size = 20,     # 20
-                   multi_probe_level = 1), {"checks" : 0})
+                   table_number = 1,
+                   key_size = 20,
+                   multi_probe_level = 1), {})
+    if descriptorType in ["brisk"]:
+        return cv2.FlannBasedMatcher(dict(algorithm = 6,
+                   table_number = 3,
+                   key_size = 20,
+                   multi_probe_level = 1), {})
     if descriptorType in ["orb"]:
         return cv2.BFMatcher(cv2.NORM_HAMMING)
     if descriptorType in ["kaze"]:
