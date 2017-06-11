@@ -26,8 +26,8 @@ __mser  = cv2.MSER_create()
 # SIFT/SURF detector and descriptors
 # SIFT: Lapl. of Gauss.  is approx. with the Diff. of Gauss.
 # SURF: Lapl. of Gauss.  is approx. with a box filter (faster).
-__sift  = cv2.xfeatures2d.SIFT_create()
-__surf  = cv2.xfeatures2d.SURF_create(extended=True)
+__sift  = cv2.xfeatures2d.SIFT_create(500)
+__surf  = cv2.xfeatures2d.SURF_create(500)
 # BRISK Binary Robust Invariant Scalable Keypoints
 __brisk = cv2.BRISK_create()
 # KAZE features and descriptors
