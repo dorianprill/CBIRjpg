@@ -92,6 +92,17 @@ def doMatching(queryDescriptor, trainDescriptor, matcher):
     matches = matcher.match(queryDescriptor, trainDescriptor)
     return np.average([m.distance for m in matches])
 
+def getClassFromPath(path):
+    return path.split("/")[-2:-1]
+
+def getNumberOfRelevantItemsForQuery(query):
+    path = os.path.dirname(query)
+    relevantItems = len([name for name in os.listdir(path) if os.path.isfile(path + '/' + name) and name.endswith('.bmp')])
+    return relevantItems
+
+def calculateFScore(precision, recall, beta=1):
+    b2 = beta * beta
+    return (1 + b2) * ((precision * recall)/((b2*precision) + recall))
 
 if __name__ == "__main__":
     #Walk over data directory containing the source images in a
@@ -110,7 +121,10 @@ if __name__ == "__main__":
     trainDescriptors    = getDescriptors(trainDir, descriptorType)
     matcher = createMatcher(descriptorType)
 
-    rocAreas = []
+    rocAreas   = []
+    f05scores  = []
+    f1scores   = []
+    f2scores   = []
     for queryDesFile, queryDes in queryDescriptors:
         results = []
 
@@ -120,7 +134,32 @@ if __name__ == "__main__":
             results.append((trainDesDist, trainDesFile))
 
         rocAreas.append(rocAreaFromResults(queryDesFile, sorted(results)))
-        printResults(queryDesFile, sorted(results))
+        #printResults(queryDesFile, sorted(results))
+        #print("-------------------")
+        #print(sorted(results)[:5])
+
+        truePositives  = 0
+        falsePositives = 0
+        relevantItems  = getNumberOfRelevantItemsForQuery(queryDesFile)
+        selectedItems  = 5
+        queryClass = getClassFromPath(queryDesFile)
+        for result in sorted(results)[:selectedItems]:
+            resultClass = getClassFromPath(result[1])
+            if resultClass == queryClass:
+                truePositives  += 1
+            else:
+                falsePositives += 1 # atm not used but might be useful
+        
+        precision = truePositives / selectedItems
+        recall    = truePositives / relevantItems
+        f05scores.append(calculateFScore(precision, recall, 0.5))
+        f1scores.append(calculateFScore(precision, recall, 1))
+        f2scores.append(calculateFScore(precision, recall, 2))
+        
+    
+    print('f0.5: '+ str(np.average(f05scores)))
+    print('f1: ' + str(np.average(f1scores)))
+    print('f2: ' + str(np.average(f2scores)))
 
     print("query:{}"
             "|trainComprMode:{}"
