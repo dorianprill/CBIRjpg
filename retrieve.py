@@ -102,7 +102,10 @@ def getNumberOfRelevantItemsForQuery(query):
 
 def calculateFScore(precision, recall, beta=1):
     b2 = beta * beta
-    return (1 + b2) * ((precision * recall)/((b2*precision) + recall))
+    try:
+        return (1 + b2) * ((precision * recall)/((b2*precision) + recall))
+    except ZeroDivisionError:
+        return 0
 
 if __name__ == "__main__":
     #Walk over data directory containing the source images in a
