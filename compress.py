@@ -45,6 +45,14 @@ class JXREncoder(Encoder):
     encCmdline = "JxrEncApp -i {0} -o {1} -q {2}"
     decCmdline = "JxrDecApp -i {0} -o {1}"
 
+class NoOverlapJXREncoder(JXREncoder):
+    encCmdline = "JxrEncApp -i {0} -o {1} -q {2} -l 0"
+
+class OneOverlapJXREncoder(JXREncoder):
+    encCmdline = "JxrEncApp -i {0} -o {1} -q {2} -l 1"
+
+class TwoOverlapJXREncoder(JXREncoder):
+    encCmdline = "JxrEncApp -i {0} -o {1} -q {2} -l 2"   
 
 def calculateTargetSize(inFile, compressionRatio):
   originalSize = os.path.getsize(inFile)
@@ -76,7 +84,8 @@ def compressToSize(encoder, targetSize):
 
 
 
-formatChoices = {"jpg" : JPGEncoder, "jp2" : JP2Encoder, "jxr" : JXREncoder}
+formatChoices = {"jpg" : JPGEncoder, "jp2" : JP2Encoder, "jxr" : JXREncoder, "0jxr" : NoOverlapJXREncoder,
+                  '1jxr' : OneOverlapJXREncoder, '2jxr' : }
 
 parser = argparse.ArgumentParser()
 parser.add_argument("inDirectory")
