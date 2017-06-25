@@ -85,7 +85,7 @@ def compressToSize(encoder, targetSize):
 
 
 formatChoices = {"jpg" : JPGEncoder, "jp2" : JP2Encoder, "jxr" : JXREncoder, "0jxr" : NoOverlapJXREncoder,
-                  '1jxr' : OneOverlapJXREncoder, '2jxr' : }
+                  '1jxr' : OneOverlapJXREncoder, '2jxr' : TwoOverlapJXREncoder}
 
 parser = argparse.ArgumentParser()
 parser.add_argument("inDirectory")

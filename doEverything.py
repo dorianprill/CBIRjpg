@@ -3,18 +3,81 @@
 import os, argparse
 import subprocess
 import pickle
+import re
+
 
 rootDir    = os.path.dirname(os.path.realpath(__file__))
-rawDataDir = os.path.join(rootDir, 'data/raw_dataset')
-resultsDir = os.path.join(rootDir, 'results')
-resultsFile = os.path.join(resultsDir, 'results.pkl')
-presetsDir = os.path.join(rootDir, 'presets')
+resultsDir = os.path.join(rootDir, "results")
+resultsFile = os.path.join(resultsDir, "results.pkl")
+presetsDir = os.path.join(rootDir, "presets")
+datasetDir = os.path.join(rootDir, "data")
 
 results = []
 
-if  not os.path.exists(rawDataDir):
-    print(rawDataDir + " does not exist. Extracting raw_dataset.tar.bz2")
-    os.system('tar xvjf ' + rootDir + '/data/raw_dataset.tar.bz2 ' + ' -C ' + rootDir + '/data/');
+
+def runCmdline(parts, getOutput = False):
+    cmdline = " ".join(parts)
+    print(cmdline)
+    print()
+    if getOutput:
+        return subprocess.check_output(cmdline, shell = True).decode("utf-8")
+    else:
+        subprocess.call(cmdline, shell = True)
+
+
+def compressedPictureDir():
+    if cRatio == 1:
+        return datasetDir
+    compressedDir = os.path.join(rootDir, "data")
+    compressedDir = os.path.join(compressedDir, parameters["dataset"] + "_compressed")
+    compressedDir = os.path.join(compressedDir, cType)
+    compressedDir = os.path.join(compressedDir, str(cRatio))
+    return compressedDir
+
+
+def compressPictures():
+    runCmdline([os.path.join(rootDir, "compress.py"),
+                datasetDir,
+                compressedPictureDir(),
+                cType,
+                str(cRatio)])
+
+
+def computeDescriptors(pictureDir):
+    runCmdline([os.path.join(rootDir, "descriptors.py"),
+                pictureDir,
+                ",".join(parameters["descriptors"])])
+
+
+def getRetrievalScores():
+    trainDir = datasetDir if scenario == "tuqc" else compressedPictureDir()
+    queryDir = compressedPictureDir()
+    output = runCmdline([os.path.join(rootDir, "retrieve.py"),
+                queryDir,
+                trainDir,
+                descriptor], getOutput = True)
+    scores = {m.group(1) : float(m.group(2))
+              for m in re.finditer("(\\S+):\\s+(\\S+)", output)}
+    return scores
+
+
+def storeResult():
+    newResult = {"dataset" : parameters["dataset"],
+                 "compressionType" : cType,
+                 "compressionRatio" : cRatio,
+                 "descriptor" : descriptor,
+                 "retrievalScenario" : scenario,
+                 "scores" : scores}
+    results.append(newResult)
+    pickle.dump(results, open(resultsFile, 'wb'))
+    print(results)
+
+
+def makePlots():
+    runCmdline([os.path.join(rootDir, "plot.py")])
+
+
+# missing: acquire / uncompress datasets
 
 if not os.path.exists(resultsDir):
     os.mkdir(resultsDir)
@@ -23,85 +86,41 @@ if os.path.exists(resultsFile):
     results = pickle.load(open(resultsFile, 'rb'))
 
 parser = argparse.ArgumentParser()
-parser.add_argument("doCompression", type = int, nargs = '?', default=1)
-parser.add_argument("doDescriptors", type = int, nargs = '?', default=1)
-parser.add_argument("doRetrieval",   type = int, nargs = '?', default=1)
-parser.add_argument("makePlots",     type = int, nargs = '?', default=1)
 parser.add_argument("preset", nargs = '?', default = "quick")
 args = parser.parse_args()
 
 presetFile = os.path.join(presetsDir, args.preset + ".py")
 exec(open(presetFile).read())
 
-for plot in plots:
-    for ratio in plot["ratios"]:
-        print('compression={}, ratio={}, scenario = {}'.format(plot["compression"], ratio, plot["scenario"]))
+datasetDir = os.path.join(datasetDir, parameters["dataset"])
 
-        compressedDir = rootDir + '/data/compressed/' + plot["compression"] + '/' + str(ratio)
-        pictureDir = rawDataDir if ratio == 1 else compressedDir
+
+computeDescriptors(datasetDir)
+
+
+for cType in parameters["compressionTypes"]:
+    for cRatio in [r for r in parameters["compressionRatios"] if r > 1]:
+        # existing results for this dataset, cType, cRatio
+        # => compression has already been done
+        if not [r for r in results if  r["dataset"] == parameters["dataset"]
+                                   and r["compressionType"] == cType
+                                   and r["compressionRatio"] == cRatio]:
+            compressPictures()
+            computeDescriptors(compressedPictureDir())
         
-        if args.doCompression == True:
-            if ratio == 1 or [r for r in results if r["compression"] == plot["compression"] and r["ratio"] == ratio]:
-                print("skipping compression")
-            else:
-                print('compressing pictures...')
-                cmdline = os.path.join(rootDir, 'compress.py') \
-                             + ' ' + rawDataDir + ' ' + compressedDir + ' ' \
-                             + plot["compression"] + ' ' + str(ratio)
-                print(cmdline)
-                print()
-                subprocess.call(cmdline, shell = True)
 
+for cType in parameters["compressionTypes"]:
+    for cRatio in [r for r in parameters["compressionRatios"]]:
+        for descriptor in parameters["descriptors"]:
+            for scenario in parameters["retrievalScenarios"]:
+                # existing results for this dataset, cType, cRatio, descriptor, scenario
+                # => retrieval has already been done
+                if not [r for r in results if  r["dataset"] == parameters["dataset"]
+                                           and r["compressionType"] == cType
+                                           and r["compressionRatio"] == cRatio
+                                           and r["descriptor"] == descriptor
+                                           and r["retrievalScenario"] == scenario]:
+                    scores = getRetrievalScores()
+                    storeResult()
 
-        if args.doDescriptors == True:
-            if [r for r in results if r["compression"] == plot["compression"] and r["ratio"] == ratio]:
-                print("skipping descriptor computation")
-            else:
-                print('computing descriptors...')
-                cmdline = os.path.join(rootDir, 'descriptors.py') \
-                            + ' ' + pictureDir + ' ' + ','.join(plot["descriptors"])
-                print(cmdline)
-                print()
-                subprocess.call(cmdline, shell = True)
-
-
-        if args.doRetrieval == True:
-            print('doing retrieval...')
-            for descriptor in plot["descriptors"]:
-                if [    r for r in results if r["compression"] == plot["compression"] and r["ratio"] == ratio
-                        and r["descriptor"] == descriptor and r["scenario"] == plot["scenario"]]:
-                    print("skipping for descriptor {}".format(descriptor))
-                    continue
-                trainingDir = rawDataDir if plot["scenario"] == "tuqc" else pictureDir
-                cmdline = os.path.join(rootDir, 'retrieve.py') \
-                        + ' ' + pictureDir + ' ' + trainingDir + ' ' + descriptor
-                print(cmdline)
-                print()
-                res = subprocess.check_output(cmdline, shell = True)
-                res = res.decode('ascii').split(sep='|')
-                avgROCArea = float(res[4].split(sep=':')[1].strip())
-                print("avgROCArea = {}".format(avgROCArea))
-                
-                newResult = {"compression" : plot["compression"],
-                             "ratio" : ratio,
-                             "descriptor" : descriptor,
-                             "scenario" : plot["scenario"],
-                             "avgROCArea" : avgROCArea}
-                
-                results.append(newResult)
-                # save to disk after every new result
-                pickle.dump(results, open(resultsFile, 'wb'))
-
-
-    if args.makePlots == True:
-        print('plotting results...')
-        plotFileName = "{}_{}.pdf".format(plot["compression"], plot["scenario"])
-        plotFile = os.path.join(resultsDir, plotFileName)
-        cmdline = os.path.join(rootDir, 'plot.py') + ' ' \
-                + resultsFile + ' ' + plot["compression"] + ' ' \
-                + plot["scenario"] + ' ' + plotFile
-        print(cmdline)
-        print()
-        subprocess.call(cmdline, shell = True)
-
-#EOF
+print(results)

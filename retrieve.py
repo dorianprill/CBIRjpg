@@ -163,16 +163,6 @@ if __name__ == "__main__":
     print('f0.5: '+ str(np.average(f05scores)))
     print('f1: ' + str(np.average(f1scores)))
     print('f2: ' + str(np.average(f2scores)))
-
-    print("query:{}"
-            "|trainComprMode:{}"
-            "|trainComprRatio:{}"
-            "|descriptor:{}"
-            "|avgRoc:{}".format(queryDir,
-                                trainDir.split(sep='/')[-2],
-                                trainDir.split(sep='/')[-1],
-                                descriptorType, 
-                                str(np.average(rocAreas)))
-    )
+    print('avgRoc: ' + str(np.average(rocAreas)))
 
 #EOF
