@@ -1,7 +1,7 @@
 parameters = {
-    "dataset" :               "raw_dataset",
+    "dataset" :               "7class",
     "compressionTypes" :     ["jpg", "jxr"],
-    "compressionRatios" :    [1, 5, 100],
-    "descriptors" :          ["orb", "sift"],
+    "compressionRatios" :    {"jpg" : [1, 10, 100, 200], "jxr" : [1, 10, 100, 200, 500]},
+    "descriptors" :          ["orb", "sift", "brisk"],
     "retrievalScenarios" :   ["tcqc", "tuqc"]
 }

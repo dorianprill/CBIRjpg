@@ -7,8 +7,6 @@ import re
 
 
 rootDir    = os.path.dirname(os.path.realpath(__file__))
-resultsDir = os.path.join(rootDir, "results")
-resultsFile = os.path.join(resultsDir, "results.pkl")
 presetsDir = os.path.join(rootDir, "presets")
 datasetDir = os.path.join(rootDir, "data")
 
@@ -69,8 +67,7 @@ def storeResult():
                  "retrievalScenario" : scenario,
                  "scores" : scores}
     results.append(newResult)
-    pickle.dump(results, open(resultsFile, 'wb'))
-    print(results)
+    pickle.dump(results, open(args.resultFile, 'wb'))
 
 
 def makePlots():
@@ -79,15 +76,13 @@ def makePlots():
 
 # missing: acquire / uncompress datasets
 
-if not os.path.exists(resultsDir):
-    os.mkdir(resultsDir)
-
-if os.path.exists(resultsFile):
-    results = pickle.load(open(resultsFile, 'rb'))
-
 parser = argparse.ArgumentParser()
-parser.add_argument("preset", nargs = '?', default = "quick")
+parser.add_argument("preset")
+parser.add_argument("resultFile")
 args = parser.parse_args()
+
+if os.path.exists(args.resultFile):
+    results = pickle.load(open(args.resultFile, 'rb'))
 
 presetFile = os.path.join(presetsDir, args.preset + ".py")
 exec(open(presetFile).read())
@@ -99,7 +94,7 @@ computeDescriptors(datasetDir)
 
 
 for cType in parameters["compressionTypes"]:
-    for cRatio in [r for r in parameters["compressionRatios"] if r > 1]:
+    for cRatio in [r for r in parameters["compressionRatios"][cType] if r > 1]:
         # existing results for this dataset, cType, cRatio
         # => compression has already been done
         if not [r for r in results if  r["dataset"] == parameters["dataset"]
@@ -110,7 +105,7 @@ for cType in parameters["compressionTypes"]:
         
 
 for cType in parameters["compressionTypes"]:
-    for cRatio in [r for r in parameters["compressionRatios"]]:
+    for cRatio in [r for r in parameters["compressionRatios"][cType]]:
         for descriptor in parameters["descriptors"]:
             for scenario in parameters["retrievalScenarios"]:
                 # existing results for this dataset, cType, cRatio, descriptor, scenario
@@ -122,5 +117,3 @@ for cType in parameters["compressionTypes"]:
                                            and r["retrievalScenario"] == scenario]:
                     scores = getRetrievalScores()
                     storeResult()
-
-print(results)
