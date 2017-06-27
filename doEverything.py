@@ -20,7 +20,7 @@ def runCmdline(parts, getOutput = False):
     if getOutput:
         return subprocess.check_output(cmdline, shell = True).decode("utf-8")
     else:
-        subprocess.call(cmdline, shell = True)
+        subprocess.check_call(cmdline, shell = True)
 
 
 def compressedPictureDir():
