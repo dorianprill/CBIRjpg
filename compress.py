@@ -27,7 +27,7 @@ class Encoder:
 
 class JPGEncoder(Encoder):
     fileEnding = ".jpg"
-    qualityRange = range(0, 300)
+    qualityRange = range(0, 101)
     encCmdline = "gm convert {0} -quality {2} {1}"
     decCmdline = "gm convert {0} {1}"
 
@@ -41,7 +41,7 @@ class JXREncoder(Encoder):
     fileEnding = ".jxr"
     # use quantization (integer) quality levels
     # this means worse results, but more available compression levels
-    qualityRange = range(300, 1, -1)
+    qualityRange = range(255, 0, -1)
     encCmdline = "JxrEncApp -i {0} -o {1} -q {2}"
     decCmdline = "JxrDecApp -i {0} -o {1}"
 
