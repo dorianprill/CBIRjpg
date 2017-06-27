@@ -89,8 +89,8 @@ exec(open(presetFile).read())
 
 datasetDir = os.path.join(datasetDir, parameters["dataset"])
 
-
-computeDescriptors(datasetDir)
+if not results:
+    computeDescriptors(datasetDir)
 
 
 for cType in parameters["compressionTypes"]:

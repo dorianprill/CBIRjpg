@@ -86,7 +86,7 @@ def loadDescriptor(descriptorFile):
 
 def doMatching(queryDescriptor, trainDescriptor, matcher):
     if queryDescriptor is None or len(queryDescriptor) == 0 or trainDescriptor is None or len(trainDescriptor) == 0:
-        print("warning: no descriptor available")
+        print("warning: no descriptor available", file = sys.stderr)
         return 0.0
     #print("matching...")
     matches = matcher.match(queryDescriptor, trainDescriptor)
