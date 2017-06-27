@@ -8,7 +8,7 @@ from itertools import product
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 matplotlib.style.use("ggplot")
-matplotlib.rcParams.update({"font.size" : 15})
+matplotlib.rcParams.update({"font.size" : 10})
 
 
 def getAvailableValues(parameter):
@@ -41,7 +41,7 @@ def getScore(parameters, scoreType):
         raise Exception("multiple results for given parameters")
 
 
-def makePlot(curves, xticks, xLabel, yLabel, title, outFile):
+def makePlot(curves, xticks, yLimits, xLabel, yLabel, title, outFile):
     plt.gcf().clear()
     
     for lineName, lineValues in curves:
@@ -51,6 +51,7 @@ def makePlot(curves, xticks, xLabel, yLabel, title, outFile):
         plt.setp(line, linewidth = 2)
     
     plt.xlim([-0.1, len(xticks) - 0.9])
+    plt.ylim(yLimits)
     
     plt.gca().grid(linewidth = 1.5)
     
@@ -79,6 +80,7 @@ args = parser.parse_args()
 results = pickle.load(open(args.resultsFile, 'rb'))
 print("loaded {} results".format(len(results)))
 
+exec(open("plotLimits.py").read())
 
 plotCounter = 0
 
@@ -105,7 +107,7 @@ for dataset, cType, scenario, scoreType in product(getAvailableValues("dataset")
              "Compression ratio (training + query)"
     ylabel = scoreType + " score"
     title = "compression: " + cType
-    makePlot(curves, xticks, xlabel, ylabel, title, outFile)
+    makePlot(curves, xticks, yLimits[scoreType], xlabel, ylabel, title, outFile)
     plotCounter += 1
 
 
@@ -135,7 +137,7 @@ for dataset, descriptor, scenario, scoreType in product(getAvailableValues("data
              "Compression ratio (training + query)"
     ylabel = scoreType + " score"
     title = "descriptor: " + descriptor
-    makePlot(curves, xticks, xlabel, ylabel, title, outFile)
+    makePlot(curves, xticks, yLimits[scoreType], xlabel, ylabel, title, outFile)
     plotCounter += 1
 
 
